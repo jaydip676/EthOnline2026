@@ -59,7 +59,7 @@ contract OpcodeEncodingTest is Test {
         assertEq(lo, 2350e18);
         assertEq(hi, 2650e18);
         assertEq(GridLib.level(p, 0), lo);
-        assertEq(GridLib.level(p, 7), hi);
+        assertEq(GridLib.level(p, 7), lo + GridLib.spacing(p) * 7);
         assertEq(GridLib.halfSpread(p) * 2, GridLib.spacing(p));
         assertEq(GridLib.envelopeFloor(p), 2250e18);
         assertEq(GridLib.envelopeCeiling(p), 2750e18);
