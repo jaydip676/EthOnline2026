@@ -82,6 +82,7 @@ library WalletGuard {
 
     function exec(Context memory ctx, bytes calldata args) internal view {
         (address token, uint16 maxShareBps, address aqua) = parse(args);
+        if (token != ctx.query.tokenOut) return;
 
         uint256 available = availableOf(
             ctx.query.maker,
