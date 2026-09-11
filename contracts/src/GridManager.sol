@@ -57,7 +57,7 @@ contract GridManager {
         return _grids[maker][gridId];
     }
 
-    /// @dev Spec order: envelope → guards → quote → fee → salt.
+    /// @dev Fee wraps the curve via runLoop, so it must sit before RungQuote.
     function buildRungProgram(
         GridLib.GridParams memory p,
         uint256 rungIndex
@@ -79,6 +79,10 @@ contract GridManager {
         );
         program = bytes.concat(
             program,
+            ProtocolFee.build(p.protocolFeeBps, p.treasury)
+        );
+        program = bytes.concat(
+            program,
             RungQuote.build(
                 GridLib.level(p, rungIndex),
                 GridLib.halfSpread(p),
@@ -88,10 +92,6 @@ contract GridManager {
                 p.usdcDecimals,
                 GridLib.wethIsTokenA(p)
             )
-        );
-        program = bytes.concat(
-            program,
-            ProtocolFee.build(p.protocolFeeBps, p.treasury)
         );
         program = bytes.concat(program, Salt.build(GridLib.salt(p, rungIndex)));
         return program;
