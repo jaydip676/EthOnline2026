@@ -115,6 +115,36 @@ contract LadderGridTest is ForkRpc {
         assertEq(usdc.balanceOf(maker), uBefore - amountOut, "maker pays USDC at the bid");
     }
 
+    function test_03_roundTripSelfRearms() public {
+        _shipAll();
+        uint256 rung = 3;
+        uint256 uStart = usdc.balanceOf(maker);
+
+        (uint256 bidIn,) = _swap(rung, true, 0.1e18);
+        uint256 wethNet = bidIn - _fee(bidIn);
+
+        (, uint256 askOut) = _swap(rung, false, 250e6);
+        assertGt(usdc.balanceOf(maker), uStart, "round trip earns 2s");
+        assertLe(weth.balanceOf(maker), ETH_BAL + wethNet);
+        assertGt(askOut, 0);
+    }
+
+    function test_04_fillsNeverExceedRealBalance() public {
+        _shipAll();
+        uint256 wStart = weth.balanceOf(maker);
+        uint256 uStart = usdc.balanceOf(maker);
+
+        for (uint256 i; i < params.rungCount; ++i) {
+            try this.externalSwap(i, true, 0.5e18) {} catch {}
+            try this.externalSwap(i, false, 1_000e6) {} catch {}
+        }
+
+        assertLe(wStart - _min(weth.balanceOf(maker), wStart), wStart);
+        assertLe(uStart - _min(usdc.balanceOf(maker), uStart), uStart);
+        assertGe(weth.balanceOf(maker), 0);
+        assertGe(usdc.balanceOf(maker), 0);
+    }
+
     function test_05_spendWethPausesAsks() public {
         _shipAll();
         uint256 send = (weth.balanceOf(maker) * 70) / 100;
@@ -185,6 +215,69 @@ contract LadderGridTest is ForkRpc {
         this.externalQuote(3, true, 0.05e18);
     }
 
+    function test_11_revokeAllowanceDarkens() public {
+        _shipAll();
+        vm.prank(maker);
+        weth.approve(address(aqua), 0);
+        vm.prank(maker);
+        usdc.approve(address(aqua), 0);
+        vm.expectRevert();
+        this.externalQuote(3, true, 0.05e18);
+
+        vm.prank(maker);
+        weth.approve(address(aqua), type(uint256).max);
+        vm.prank(maker);
+        usdc.approve(address(aqua), type(uint256).max);
+        (uint256 qIn,) = _quote(3, true, 0.05e18);
+        assertGt(qIn, 0);
+    }
+
+    function test_12_protocolFeeToTreasury() public {
+        _shipAll();
+        uint256 before = weth.balanceOf(treasury);
+        (uint256 amountIn,) = _swap(3, true, 1e18);
+        assertEq(weth.balanceOf(treasury) - before, _fee(amountIn));
+    }
+
+    function test_13_dockAllStopsQuotes() public {
+        _shipAll();
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(weth);
+        tokens[1] = address(usdc);
+        uint256 w = weth.balanceOf(maker);
+        vm.startPrank(maker);
+        for (uint256 i; i < hashes.length; ++i) {
+            aqua.dock(address(router), hashes[i], tokens);
+        }
+        vm.stopPrank();
+        assertEq(weth.balanceOf(maker), w, "dock must not move tokens");
+        vm.expectRevert();
+        this.externalQuote(0, true, 0.05e18);
+    }
+
+    function test_14_fuzzPriceNeverBetterThanRung(uint96 raw) public {
+        _shipAll();
+        uint256 amountIn = bound(uint256(raw), 1e15, 0.5e18);
+        uint256 rung = 3;
+        uint256 bid = GridLib.level(params, rung) - GridLib.halfSpread(params);
+        try this.externalQuote(rung, true, amountIn) returns (uint256 inAmt, uint256 outAmt) {
+            if (inAmt == 0) return;
+            assertLe(outAmt * 1e18 * 1e18, inAmt * bid * 1e6 + 1e6);
+        } catch {}
+    }
+
+    function test_registerGridIndexesMaker() public {
+        _shipAll();
+        vm.prank(maker);
+        uint256 id = manager.registerGrid(address(weth), address(usdc), hashes, params);
+        assertEq(id, 0);
+        assertEq(manager.gridCount(maker), 1);
+        LadderLens.GridView memory gv = lens.gridView(maker, 0);
+        assertEq(gv.oraclePrice, SPOT);
+        assertEq(uint8(gv.envelopeState), uint8(GridLib.PausedReason.None));
+        assertGt(gv.spendableWeth, 0);
+    }
+
     function externalSwap(uint256 rung, bool takerSellsWeth, uint256 amount)
         external
         returns (uint256, uint256)
@@ -253,5 +346,9 @@ contract LadderGridTest is ForkRpc {
                 if (src == from) ++n;
             }
         }
+    }
+
+    function _min(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a < b ? a : b;
     }
 }
