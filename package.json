@@ -1,0 +1,9 @@
+{
+  "name": "ladder",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter ladder-frontend dev",
+    "build": "pnpm --filter ladder-frontend build",
+    "resolver": "pnpm --filter ladder-resolver start"
+  }
+}

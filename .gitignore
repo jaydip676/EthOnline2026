@@ -1,0 +1,25 @@
+# Foundry
+contracts/cache/
+contracts/out/
+contracts/lib/
+contracts/broadcast/*/31337/
+contracts/broadcast/**/dry-run/
+contracts/.vscode/
+
+# Node
+node_modules/
+frontend/.next/
+frontend/out/
+resolver/dist/
+.pnpm-store/
+
+# Env
+.env
+.env.local
+frontend/.env.local
+resolver/.env
+
+# OS / IDE
+.DS_Store
+*.log
+*.tsbuildinfo
