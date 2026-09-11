@@ -64,10 +64,16 @@ library GridLib {
     error ZeroAddress();
 
     function validate(GridParams memory p) internal pure {
-        if (p.maker == address(0) || p.weth == address(0) || p.usdc == address(0) || p.oracle == address(0)) {
+        if (
+            p.maker == address(0) ||
+            p.weth == address(0) ||
+            p.usdc == address(0) ||
+            p.oracle == address(0)
+        ) {
             revert ZeroAddress();
         }
-        if (p.rungCount < 2 || p.rungCount > 32) revert BadRungCount(p.rungCount);
+        if (p.rungCount < 2 || p.rungCount > 32)
+            revert BadRungCount(p.rungCount);
         if (p.rangeBps == 0 || p.rangeBps >= BPS) revert BadBps();
         if (p.envelopeBps == 0 || p.envelopeBps >= BPS) revert BadBps();
         if (p.envelopeBps <= p.rangeBps) revert BadBps();
@@ -91,15 +97,22 @@ library GridLib {
         return spacing(p) / 2;
     }
 
-    function level(GridParams memory p, uint256 rungIndex) internal pure returns (uint256) {
+    function level(
+        GridParams memory p,
+        uint256 rungIndex
+    ) internal pure returns (uint256) {
         return low(p) + spacing(p) * rungIndex;
     }
 
-    function envelopeFloor(GridParams memory p) internal pure returns (uint256) {
+    function envelopeFloor(
+        GridParams memory p
+    ) internal pure returns (uint256) {
         return Math.mulDiv(p.spot, BPS - p.envelopeBps, BPS);
     }
 
-    function envelopeCeiling(GridParams memory p) internal pure returns (uint256) {
+    function envelopeCeiling(
+        GridParams memory p
+    ) internal pure returns (uint256) {
         return Math.mulDiv(p.spot, BPS + p.envelopeBps, BPS);
     }
 
@@ -125,7 +138,10 @@ library GridLib {
         return wethIsTokenA(p) ? p.usdc : p.weth;
     }
 
-    function salt(GridParams memory p, uint256 rungIndex) internal pure returns (uint64) {
+    function salt(
+        GridParams memory p,
+        uint256 rungIndex
+    ) internal pure returns (uint64) {
         return uint64((uint256(p.saltNonce) << 8) | rungIndex);
     }
 }
