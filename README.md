@@ -86,7 +86,7 @@ The matrix lives in `contracts/test/LadderGrid.t.sol`. The two that carry the th
 - **`test_spec10_underfundedAdverseMoveNoStaleFill`** — the §3 harm, prevented.
 - **`test_spec17_fuzzSlacCollisions`** — experiment, not pass/fail. Logs collision rate vs SLAC 1×–9×. Present as a method demonstration, not a validated predictor.
 
-Also: coverage breach then restore (`test_spec09`); two takers, one balance (`test_spec11`); self-custody, self-rearm, share cap, envelope, fee, dock.
+Also: coverage breach then restore (`test_spec09`); two takers, one balance (`test_spec11`); price path never worse than the rung (`test_spec18`); self-custody, self-rearm, share cap, envelope, fee, dock.
 
 ## App
 
@@ -94,7 +94,7 @@ Also: coverage breach then restore (`test_spec09`); two takers, one balance (`te
 - **Position** — live flags, spendable now, SLAC, Pause (dock) / Off (revoke; Aqua allowance is global).
 - **Coverage** — quoted vs real per rung, current SLAC, predicted fill / max safe SLAC (method demo), fill history. Judge screen. Whitepaper §6.3.
 
-The Ladder resolver is the v1 counterparty so fills exist before external takers arrive. That belongs in the UI footer, not a footnote.
+The Ladder resolver is the v1 counterparty so fills exist before external takers arrive. Quote-only until `TAKE_FILLS=1`. That belongs in the UI footer, not a footnote.
 
 ## Quick start
 
@@ -123,5 +123,7 @@ Default commit is 20% of the wallet — a live share, not a frozen number. Docki
 `frontend/lib/deployments.json` is zeros until:
 
 ```bash
+cd contracts
+source .env
 forge script script/Deploy.s.sol:DeployScript --rpc-url $BASE_RPC_URL --broadcast
 ```

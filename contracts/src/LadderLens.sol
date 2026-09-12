@@ -158,6 +158,17 @@ contract LadderLens {
         return Math.min(share, allowance_);
     }
 
+    /// @notice ETH/USD 1e18 from any AggregatorV3-shaped feed. Wizard and resolver read this.
+    function oraclePrice(address feed) public view returns (uint256 px, uint256 updatedAt, uint8 decimals_) {
+        IPriceOracle oracle = IPriceOracle(feed);
+        (, int256 answer,, uint256 ts,) = oracle.latestRoundData();
+        decimals_ = oracle.decimals();
+        px = answer > 0 ? uint256(answer) : 0;
+        if (decimals_ < 18) px *= 10 ** (18 - decimals_);
+        else if (decimals_ > 18) px /= 10 ** (decimals_ - 18);
+        updatedAt = ts;
+    }
+
     function gridView(address maker, uint256 gridId) public view returns (GridView memory v) {
         GridManager.Grid memory g = grids.getGrid(maker, gridId);
         GridLib.GridParams memory p = g.params;

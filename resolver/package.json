@@ -9,6 +9,7 @@
     "viem": "^2.28.0"
   },
   "devDependencies": {
+    "@types/node": "^22.13.10",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
   }

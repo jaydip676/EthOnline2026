@@ -309,6 +309,9 @@ contract LadderGridTest is ForkRpc {
         assertEq(mv.maxSafeSlac, 1e18);
         assertEq(mv.collisionHazardBps, 0);
         assertEq(mv.slac, 0);
+        (uint256 px,, uint8 dec) = lens.oraclePrice(address(oracle));
+        assertEq(px, SPOT);
+        assertEq(dec, 18);
     }
 
     /// @dev Spec 9: coverage below the floor stops the quote; restore and it lives.
@@ -430,6 +433,30 @@ contract LadderGridTest is ForkRpc {
         emit log_named_uint("first", firstOk ? 1 : 0);
         emit log_named_uint("second", secondOk ? 1 : 0);
         emit log_named_uint("collision", firstOk && !secondOk ? 1 : 0);
+    }
+
+    /// @dev Spec 18: random price inside the envelope; fill is never worse than the rung.
+    function test_spec18_fuzzPricePathNeverWorseThanRung(uint96 rawPx, uint96 rawAmt, uint8 rungRaw) public {
+        _shipAll();
+        uint256 px = bound(uint256(rawPx), 2_300e18, 2_700e18);
+        oracle.setPrice(int256(px));
+        uint256 rung = bound(uint256(rungRaw), 0, uint256(params.rungCount) - 1);
+        uint256 wethIn = bound(uint256(rawAmt), 1e15, 0.2e18);
+        uint256 bid = GridLib.level(params, rung) - GridLib.halfSpread(params);
+        uint256 ask = GridLib.level(params, rung) + GridLib.halfSpread(params);
+
+        try this.externalQuote(rung, true, wethIn) returns (uint256 inAmt, uint256 outAmt) {
+            if (inAmt > 0) {
+                assertLe(outAmt * 1e18 * 1e18, inAmt * bid * 1e6 + 1e6, "bid never worse than the rung");
+            }
+        } catch {}
+
+        uint256 usdcIn = bound(uint256(rawAmt), 1e6, 500e6);
+        try this.externalQuote(rung, false, usdcIn) returns (uint256 inAmt, uint256 outAmt) {
+            if (inAmt > 0) {
+                assertLe(outAmt * ask, inAmt * 1e12 * 1e18 + 1e18, "ask never worse than the rung");
+            }
+        } catch {}
     }
 
     function externalSwap(uint256 rung, bool takerSellsWeth, uint256 amount)
