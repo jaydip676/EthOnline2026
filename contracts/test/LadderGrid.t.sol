@@ -294,6 +294,21 @@ contract LadderGridTest is ForkRpc {
         assertEq(uint8(rs[3].pausedReason), uint8(GridLib.PausedReason.None));
         assertGt(rs[3].virtualWeth, 0);
         assertEq(rs[3].coverageWeth, 10_000);
+        LadderLens.MakerView memory mv = lens.makerView(maker);
+        assertEq(mv.reliabilityBps, 10_000);
+        assertGt(mv.predictedFillBps, 0);
+        assertGe(mv.maxSafeSlac, 1e18);
+        assertEq(mv.slac, gv.slac);
+        assertFalse(mv.isContract);
+    }
+
+    function test_makerViewWithoutGrid() public view {
+        LadderLens.MakerView memory mv = lens.makerView(maker);
+        assertEq(mv.reliabilityBps, 10_000);
+        assertEq(mv.predictedFillBps, 10_000);
+        assertEq(mv.maxSafeSlac, 1e18);
+        assertEq(mv.collisionHazardBps, 0);
+        assertEq(mv.slac, 0);
     }
 
     /// @dev Spec 9: coverage below the floor stops the quote; restore and it lives.

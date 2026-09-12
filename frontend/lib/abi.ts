@@ -289,6 +289,25 @@ export const lensAbi = [
   },
   {
     type: "function",
+    name: "makerView",
+    stateMutability: "view",
+    inputs: [{ name: "maker", type: "address" }],
+    outputs: [
+      {
+        type: "tuple",
+        components: [
+          { name: "reliabilityBps", type: "uint16" },
+          { name: "predictedFillBps", type: "uint16" },
+          { name: "maxSafeSlac", type: "uint256" },
+          { name: "collisionHazardBps", type: "uint16" },
+          { name: "slac", type: "uint256" },
+          { name: "isContract", type: "bool" },
+        ],
+      },
+    ],
+  },
+  {
+    type: "function",
     name: "gridView",
     stateMutability: "view",
     inputs: [

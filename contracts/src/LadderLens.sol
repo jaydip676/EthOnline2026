@@ -7,6 +7,7 @@ import {IAqua} from "@1inch/aqua/src/interfaces/IAqua.sol";
 import {ISwapVM} from "swap-vm/src/interfaces/ISwapVM.sol";
 
 import {GridManager} from "./GridManager.sol";
+import {CollisionHeuristic} from "./libraries/CollisionHeuristic.sol";
 import {GridLib} from "./libraries/GridLib.sol";
 import {IPriceOracle} from "./interfaces/IPriceOracle.sol";
 import {LadderRouter} from "./LadderRouter.sol";
@@ -61,6 +62,16 @@ contract LadderLens {
         uint64 updatedAt;
     }
 
+    /// @notice Collision heuristic for a maker. Method demonstration, not a validated predictor.
+    struct MakerView {
+        uint16 reliabilityBps;
+        uint16 predictedFillBps;
+        uint256 maxSafeSlac;
+        uint16 collisionHazardBps;
+        uint256 slac;
+        bool isContract;
+    }
+
     LadderRouter public immutable router;
     GridManager public immutable grids;
     IAqua public immutable aqua;
@@ -96,6 +107,48 @@ contract LadderLens {
         MakerScore memory s = scores[maker];
         if (s.attempted == 0) return 10_000;
         return uint16((uint256(s.succeeded) * 10_000) / s.attempted);
+    }
+
+    /// @notice Quadratic-in-(SLAC-1) fill heuristic. Never prices a swap. Never holds a key.
+    /// @dev Uses grid 0 only -- do not call rungs() here. Size is the 50% of available
+    ///      calibration point (no surcharge) so maxSafeSlac is comparable to test 17.
+    function makerView(address maker) public view returns (MakerView memory v) {
+        v.reliabilityBps = reliabilityBps(maker);
+        v.isContract = maker.code.length > 0;
+        if (grids.gridCount(maker) == 0) {
+            v.predictedFillBps = v.reliabilityBps;
+            v.maxSafeSlac = WAD;
+            return v;
+        }
+
+        GridView memory gv = gridView(maker, 0);
+        GridManager.Grid memory g = grids.getGrid(maker, 0);
+        v.slac = gv.slac;
+
+        uint16 cov = g.params.minCoverageBps;
+        if (g.params.ethCap > 0) {
+            uint256 live = Math.mulDiv(gv.spendableWeth, 10_000, g.params.ethCap);
+            if (live > 10_000) live = 10_000;
+            if (live < cov) cov = uint16(live);
+        }
+        if (g.params.usdcCap > 0) {
+            uint256 live = Math.mulDiv(gv.spendableUsdc, 10_000, g.params.usdcCap);
+            if (live > 10_000) live = 10_000;
+            if (live < cov) cov = uint16(live);
+        }
+
+        CollisionHeuristic.Score memory s = CollisionHeuristic.score(
+            CollisionHeuristic.Args({
+                reliabilityBps: v.reliabilityBps,
+                slac: gv.slac == 0 ? WAD : gv.slac,
+                minCoverageBps: cov,
+                isContract: v.isContract,
+                sizeBpsOfAvailable: 5_000
+            })
+        );
+        v.predictedFillBps = s.predictedFillBps;
+        v.maxSafeSlac = s.maxSafeSlac;
+        v.collisionHazardBps = s.collisionHazardBps;
     }
 
     function spendableNow(address maker, address token, uint16 maxShareBps) public view returns (uint256) {

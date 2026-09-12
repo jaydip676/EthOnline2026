@@ -77,7 +77,7 @@ Program bytes (fee before quote because SwapVM `runLoop`):
 
 Defaults: commit 20% of wallet, range ±6%, 8 rungs, envelope ±10%, coverage floor 40%, fee 5 bps.
 
-`LadderLens` is the only UI/taker read path. Live means `quote()` would succeed. SLAC is `Σ provisioned / walletEquity` (1e18 = 1.0×).
+`LadderLens` is the only UI/taker read path. Live means `quote()` would succeed. SLAC is `Σ provisioned / walletEquity` (1e18 = 1.0×). `makerView` is a transparent collision heuristic (quadratic in SLAC−1) — a method demonstration, not a validated predictor. It never prices a swap and never holds a key.
 
 ## Tests (Foundry, Aqua fork)
 
@@ -90,9 +90,9 @@ Also: coverage breach then restore (`test_spec09`); two takers, one balance (`te
 
 ## App
 
-- **Grid** — sliders for commit, range, rungs, envelope, coverage floor. Start = approve + N ships + register.
+- **Grid** — sliders for commit, range, rungs, envelope, coverage floor. Deterministic risk explainer before Start. Start = approve + N ships + register.
 - **Position** — live flags, spendable now, SLAC, Pause (dock) / Off (revoke; Aqua allowance is global).
-- **Coverage** — quoted vs real per rung, current SLAC, fill history. Judge screen. Whitepaper §6.3.
+- **Coverage** — quoted vs real per rung, current SLAC, predicted fill / max safe SLAC (method demo), fill history. Judge screen. Whitepaper §6.3.
 
 The Ladder resolver is the v1 counterparty so fills exist before external takers arrive. That belongs in the UI footer, not a footnote.
 

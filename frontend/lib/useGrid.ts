@@ -44,6 +44,16 @@ export function useReliability(maker?: `0x${string}`) {
   });
 }
 
+export function useMakerView(maker?: `0x${string}`) {
+  return useReadContract({
+    address: LENS,
+    abi: lensAbi,
+    functionName: "makerView",
+    args: maker ? [maker] : undefined,
+    query: { enabled: Boolean(maker) && isDeployed() },
+  });
+}
+
 export function useRegisteredGrid(maker?: `0x${string}`, gridId = 0n) {
   return useReadContract({
     address: GRID_MANAGER,

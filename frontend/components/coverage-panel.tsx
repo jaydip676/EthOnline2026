@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { formatBps, formatSlac, formatToken } from "@/lib/format";
 import { useFills } from "@/lib/useFills";
-import { PAUSED, useGridCount, useGridView, useRegisteredGrid, useReliability, useRungs } from "@/lib/useGrid";
+import { PAUSED, useGridCount, useGridView, useMakerView, useRegisteredGrid, useRungs } from "@/lib/useGrid";
 
 function coverageBadge(bps: bigint, floorBps: number) {
   const n = Number(bps);
@@ -35,7 +35,7 @@ export function CoveragePanel() {
   const { data: view } = useGridView(address, gridId);
   const { data: rungs } = useRungs(address, gridId);
   const { data: grid } = useRegisteredGrid(address, gridId);
-  const { data: score } = useReliability(address);
+  const { data: makerView } = useMakerView(address);
   const fills = useFills(address);
 
   const hasGrid = Boolean(count && count > 0n && view);
@@ -113,17 +113,45 @@ export function CoveragePanel() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>History, not a predictor</CardTitle>
-            <CardDescription>fills succeeded / attempted. Backward-looking.</CardDescription>
+            <CardTitle>Method demo, not a predictor</CardTitle>
+            <CardDescription>
+              Quadratic in (SLAC−1). A wrong number costs a taker one reverted simulation.
+            </CardDescription>
           </CardHeader>
           <CardContent className="divide-rule">
             <DataRow
               label="Reliability"
-              value={<span className="num">{score === undefined ? "—" : formatBps(score)}</span>}
+              value={
+                <span className="num">
+                  {makerView === undefined ? "—" : formatBps(makerView.reliabilityBps)}
+                </span>
+              }
             />
             <DataRow label="Fills logged" value={<span className="num">{fills.fills.length}</span>} />
-            <DataRow label="Predicted fill" value="—" />
-            <DataRow label="Max safe SLAC" value="—" />
+            <DataRow
+              label="Predicted fill"
+              value={
+                <span className="num">
+                  {makerView === undefined ? "—" : formatBps(makerView.predictedFillBps)}
+                </span>
+              }
+            />
+            <DataRow
+              label="Max safe SLAC"
+              value={
+                <span className="num">
+                  {makerView === undefined ? "—" : formatSlac(makerView.maxSafeSlac)}
+                </span>
+              }
+            />
+            <DataRow
+              label="Collision hazard"
+              value={
+                <span className="num">
+                  {makerView === undefined ? "—" : formatBps(makerView.collisionHazardBps)}
+                </span>
+              }
+            />
           </CardContent>
         </Card>
         <Card>
@@ -132,8 +160,9 @@ export function CoveragePanel() {
           </CardHeader>
           <CardContent className="text-[13px] leading-relaxed text-pretty text-muted-foreground">
             Aqua §3 tells makers to dock chronically underfunded strategies by hand. CoverageGuard is
-            that policy on-chain. Predicted fill probability and max safe SLAC are a method
-            demonstration on a weekend of data — they are not shown as numbers here on purpose.
+            that policy on-chain. Predicted fill and max safe SLAC are a transparent heuristic
+            calibrated so ~3.2× is ~1% under the test-17 pattern — a method demonstration, not a
+            bound you can take to production. It never prices a swap and never holds a key.
           </CardContent>
         </Card>
       </div>

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { encodeFunctionData, maxUint256, zeroAddress } from "viem";
-import { useAccount, usePublicClient, useReadContract, useWalletClient } from "wagmi";
+import { useAccount, useBytecode, usePublicClient, useReadContract, useWalletClient } from "wagmi";
 import { ConnectGate } from "@/components/connect-gate";
 import { DataRow } from "@/components/data-row";
 import { PageHeader } from "@/components/page-header";
@@ -26,7 +26,8 @@ import {
   WETH_TOKEN,
   isDeployed,
 } from "@/lib/addresses";
-import { formatToken, formatUsd } from "@/lib/format";
+import { score, slacFromRungs } from "@/lib/collision";
+import { formatBps, formatSlac, formatToken, formatUsd } from "@/lib/format";
 import {
   DEFAULT_PROTOCOL_FEE,
   DEFAULT_STALENESS,
@@ -37,9 +38,11 @@ import {
   type Tier,
 } from "@/lib/grid";
 import { runIntent, type IntentCall } from "@/lib/intent";
+import { explainRisk } from "@/lib/riskExplainer";
 import { encodeOrder, nextSalt, type SwapVMOrder } from "@/lib/strategy";
 import { USDC, WETH } from "@/lib/tokens";
 import { toastTxErr, toastTxOk } from "@/lib/tx";
+import { useReliability } from "@/lib/useGrid";
 
 const MODE_LABEL: Record<Mode, string> = { 0: "Grid", 1: "Buy ladder", 2: "Sell ladder" };
 const TIER_LABEL: Record<Tier, string> = { 0: "Flexible", 1: "Committed" };
@@ -82,6 +85,11 @@ export function GridWizard() {
     args: [ORACLE === zeroAddress ? WETH_TOKEN : ORACLE],
     query: { enabled: isDeployed() && ORACLE !== zeroAddress },
   });
+  const { data: bytecode } = useBytecode({
+    address,
+    query: { enabled: Boolean(address) },
+  });
+  const { data: reliability } = useReliability(address);
 
   const spot = oracleTuple?.[0] && oracleTuple[0] > 0n ? oracleTuple[0] : 2500n * 10n ** 18n;
   const preview = useMemo(
@@ -96,6 +104,37 @@ export function GridWizard() {
   const quotedSlac = (rungs * commit) / 100;
   const spendableEth = ethBal - (tier === 1 ? ethCap : 0n);
   const spendableUsdc = usdBal - (tier === 1 ? usdcCap : 0n);
+  const isContract = Boolean(bytecode && bytecode !== "0x");
+  const heuristic = useMemo(
+    () =>
+      score({
+        reliabilityBps: reliability === undefined ? 10_000 : reliability,
+        slacWad: slacFromRungs(rungs, commit),
+        minCoverageBps: coverage * 100,
+        isContract,
+        sizeBpsOfAvailable: 5_000,
+      }),
+    [reliability, rungs, commit, coverage, isContract],
+  );
+  const riskCopy = useMemo(
+    () =>
+      explainRisk({
+        spot,
+        ethBal,
+        usdcBal: usdBal,
+        commitPct: commit,
+        rangePct: range,
+        envelopePct: envelope,
+        rungs,
+        coveragePct: coverage,
+        quotedSlac,
+        roundTripBps: preview.roundTripBps,
+        worstEth: worst.worstEth,
+        score: heuristic,
+        isContract,
+      }),
+    [spot, ethBal, usdBal, commit, range, envelope, rungs, coverage, quotedSlac, preview.roundTripBps, worst.worstEth, heuristic, isContract],
+  );
 
   const steps: ProgressStep[] = [
     { id: "approve", label: "Approve Aqua", hint: "One allowance. Tokens stay in the wallet." },
@@ -340,7 +379,8 @@ export function GridWizard() {
               <CardTitle>Ladder preview</CardTitle>
               <CardDescription>
                 Spot {formatUsd(spot)} · round trip {preview.roundTripBps.toFixed(1)} bps · quoted SLAC{" "}
-                {quotedSlac.toFixed(1)}× · fee 5 bps
+                {quotedSlac.toFixed(1)}× · heuristic max {formatSlac(heuristic.maxSafeSlac)} · predicted fill{" "}
+                {formatBps(heuristic.predictedFillBps)} · fee 5 bps
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-5">
@@ -366,6 +406,16 @@ export function GridWizard() {
                   Worst-case inventory at the bottom of the range is about{" "}
                   <span className="num font-medium">{formatToken(worst.worstEth, 18, 3)} ETH</span> if every bid
                   fills. The envelope bounds this; it does not remove it.
+                </AlertDescription>
+              </Alert>
+              <Alert variant="info">
+                <AlertTitle>This text does not hold a key and does not price a swap</AlertTitle>
+                <AlertDescription>
+                  <div className="grid gap-2">
+                    {riskCopy.map((line) => (
+                      <p key={line.slice(0, 48)}>{line}</p>
+                    ))}
+                  </div>
                 </AlertDescription>
               </Alert>
               <Button size="lg" className="w-full" onClick={() => void onStart()} loading={busy} disabled={busy}>
