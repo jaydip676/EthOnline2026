@@ -12,6 +12,7 @@ import {GridManager} from "../src/GridManager.sol";
 import {LadderLens} from "../src/LadderLens.sol";
 import {MockOracle} from "../src/oracle/MockOracle.sol";
 import {OracleEnvelope} from "../src/instructions/OracleEnvelope.sol";
+import {CoverageGuard} from "../src/instructions/CoverageGuard.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {ForkRpc} from "./utils/ForkRpc.sol";
 
@@ -26,6 +27,7 @@ contract LadderGridTest is ForkRpc {
     MockERC20 internal usdc;
     address internal maker;
     address internal taker;
+    address internal taker2;
     address internal treasury;
 
     GridLib.GridParams internal params;
@@ -42,6 +44,7 @@ contract LadderGridTest is ForkRpc {
         aqua = IAqua(AQUA);
         maker = makeAddr("maker");
         taker = makeAddr("taker");
+        taker2 = makeAddr("taker2");
         treasury = makeAddr("treasury");
 
         weth = new MockERC20("Wrapped Ether", "WETH", 18);
@@ -81,6 +84,8 @@ contract LadderGridTest is ForkRpc {
         usdc.mint(maker, USDC_BAL);
         weth.mint(taker, 50e18);
         usdc.mint(taker, 100_000e6);
+        weth.mint(taker2, 50e18);
+        usdc.mint(taker2, 100_000e6);
 
         vm.startPrank(maker);
         weth.approve(address(aqua), type(uint256).max);
@@ -88,6 +93,11 @@ contract LadderGridTest is ForkRpc {
         vm.stopPrank();
 
         vm.startPrank(taker);
+        weth.approve(address(router), type(uint256).max);
+        usdc.approve(address(router), type(uint256).max);
+        vm.stopPrank();
+
+        vm.startPrank(taker2);
         weth.approve(address(router), type(uint256).max);
         usdc.approve(address(router), type(uint256).max);
         vm.stopPrank();
@@ -286,11 +296,139 @@ contract LadderGridTest is ForkRpc {
         assertEq(rs[3].coverageWeth, 10_000);
     }
 
+    /// @dev Spec 9: coverage below the floor stops the quote; restore and it lives.
+    function test_spec09_coverageBreachThenRestore() public {
+        _shipAll();
+        uint256 keep = 3e18;
+        uint256 send = weth.balanceOf(maker) - keep;
+        vm.prank(maker);
+        weth.transfer(taker, send);
+
+        uint256 share = (keep * uint256(params.maxShareBps)) / 10_000;
+        uint256 coverage = (share * 10_000) / params.ethCap;
+        assertLt(coverage, params.minCoverageBps);
+
+        vm.expectRevert(abi.encodeWithSelector(CoverageGuard.CoverageBreach.selector, coverage));
+        this.externalQuote(3, false, 1e6);
+
+        (uint256 bidIn,) = _quote(3, true, 0.05e18);
+        assertGt(bidIn, 0, "bids still quote - USDC coverage is intact");
+
+        vm.prank(taker);
+        weth.transfer(maker, send);
+        (, uint256 askOut) = _quote(3, false, 1e6);
+        assertGt(askOut, 0, "asks live once coverage is restored");
+    }
+
+    /// @dev Spec 10: underfunded, adverse move, refund - no fill at the stale adverse price.
+    function test_spec10_underfundedAdverseMoveNoStaleFill() public {
+        _shipAll();
+        uint256 keepUsdc = 5_000e6;
+        uint256 sendUsdc = usdc.balanceOf(maker) - keepUsdc;
+        vm.prank(maker);
+        usdc.transfer(taker, sendUsdc);
+
+        uint256 share = (keepUsdc * uint256(params.maxShareBps)) / 10_000;
+        uint256 coverage = (share * 10_000) / params.usdcCap;
+        vm.expectRevert(abi.encodeWithSelector(CoverageGuard.CoverageBreach.selector, coverage));
+        this.externalQuote(3, true, 0.05e18);
+
+        uint256 adverse = 2_000e18;
+        oracle.setPrice(int256(adverse));
+
+        vm.prank(taker);
+        usdc.transfer(maker, sendUsdc);
+
+        vm.expectRevert(abi.encodeWithSelector(OracleEnvelope.EnvelopeClosed.selector, adverse));
+        this.externalQuote(3, true, 0.05e18);
+        vm.expectRevert();
+        this.externalSwap(3, true, 0.05e18);
+
+        oracle.setPrice(int256(SPOT));
+        (uint256 qIn, uint256 qOut) = _quote(3, true, 0.05e18);
+        assertGt(qIn, 0);
+        uint256 bid = GridLib.level(params, 3) - GridLib.halfSpread(params);
+        assertLe(qOut * 1e18 * 1e18, qIn * bid * 1e6 + 1e6, "fill is the rung, not the dumped print");
+    }
+
+    /// @dev Spec 11: two takers, one wallet, one fill, one clean revert.
+    function test_spec11_twoTakersOneBalance() public {
+        params.maxShareBps = 10_000;
+        params.ethCap = 1e18;
+        _shipAll();
+        uint256 leave = 1e18;
+        uint256 send = weth.balanceOf(maker) - leave;
+        vm.prank(maker);
+        weth.transfer(taker, send);
+
+        uint256 makerWeth = weth.balanceOf(maker);
+        uint256 t1Start = weth.balanceOf(taker);
+        uint256 t2Start = weth.balanceOf(taker2);
+
+        (uint256 inAmt, uint256 outAmt) = _swapAs(taker, 3, false, 50_000e6);
+        assertGt(inAmt, 0);
+        assertGt(outAmt, 0);
+
+        vm.expectRevert();
+        this.externalSwapAs(taker2, 3, false, 50_000e6);
+
+        uint256 taken = (weth.balanceOf(taker) - t1Start) + (weth.balanceOf(taker2) - t2Start);
+        assertLe(taken, makerWeth);
+        assertEq(weth.balanceOf(taker2), t2Start, "second taker receives nothing");
+    }
+
+    /// @dev Spec 17: experiment - collision rate vs SLAC 1x-9x. Not pass/fail on the rate.
+    function test_spec17_fuzzSlacCollisions(uint8 slacRaw, uint16 spendRaw) public {
+        uint256 slacX = bound(uint256(slacRaw), 1, 9);
+        uint256 spendBps = bound(uint256(spendRaw), 0, 8_000);
+        uint256 n = params.rungCount;
+        params.maxShareBps = 10_000;
+        params.minCoverageBps = 1;
+        params.ethCap = (ETH_BAL * slacX) / n;
+        params.usdcCap = (USDC_BAL * slacX) / n;
+        _shipAll();
+
+        uint256 send = (ETH_BAL * spendBps) / 10_000;
+        if (send > 0 && send < ETH_BAL) {
+            vm.prank(maker);
+            weth.transfer(address(0xDEAD), send);
+        }
+
+        uint256 wStart = weth.balanceOf(maker);
+        uint256 t1Start = weth.balanceOf(taker);
+        uint256 t2Start = weth.balanceOf(taker2);
+
+        bool firstOk;
+        bool secondOk;
+        try this.externalSwapAs(taker, 3, false, 50_000e6) {
+            firstOk = true;
+        } catch {}
+        try this.externalSwapAs(taker2, 4, false, 50_000e6) {
+            secondOk = true;
+        } catch {}
+
+        uint256 taken = (weth.balanceOf(taker) - t1Start) + (weth.balanceOf(taker2) - t2Start);
+        assertLe(taken, wStart, "fills cannot exceed the wallet");
+
+        emit log_named_uint("slacX", slacX);
+        emit log_named_uint("spendBps", spendBps);
+        emit log_named_uint("first", firstOk ? 1 : 0);
+        emit log_named_uint("second", secondOk ? 1 : 0);
+        emit log_named_uint("collision", firstOk && !secondOk ? 1 : 0);
+    }
+
     function externalSwap(uint256 rung, bool takerSellsWeth, uint256 amount)
         external
         returns (uint256, uint256)
     {
         return _swap(rung, takerSellsWeth, amount);
+    }
+
+    function externalSwapAs(address who, uint256 rung, bool takerSellsWeth, uint256 amount)
+        external
+        returns (uint256, uint256)
+    {
+        return _swapAs(who, rung, takerSellsWeth, amount);
     }
 
     function externalQuote(uint256 rung, bool takerSellsWeth, uint256 amount)
@@ -327,9 +465,18 @@ contract LadderGridTest is ForkRpc {
     }
 
     function _swap(uint256 rung, bool takerSellsWeth, uint256 amount) internal returns (uint256, uint256) {
+        return _swapAs(taker, rung, takerSellsWeth, amount);
+    }
+
+    function _swapAs(
+        address who,
+        uint256 rung,
+        bool takerSellsWeth,
+        uint256 amount
+    ) internal returns (uint256, uint256) {
         bool isAToB = takerSellsWeth ? wethIsA : !wethIsA;
-        bytes memory td = manager.buildTakerData(taker, true, isAToB, true);
-        vm.prank(taker);
+        bytes memory td = manager.buildTakerData(who, true, isAToB, true);
+        vm.prank(who);
         (uint256 inAmt, uint256 outAmt,) = router.swap(orders[rung], amount, td);
         return (inAmt, outAmt);
     }
