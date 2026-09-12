@@ -44,6 +44,16 @@ export function useReliability(maker?: `0x${string}`) {
   });
 }
 
+export function useRegisteredGrid(maker?: `0x${string}`, gridId = 0n) {
+  return useReadContract({
+    address: GRID_MANAGER,
+    abi: gridManagerAbi,
+    functionName: "getGrid",
+    args: maker ? [maker, gridId] : undefined,
+    query: { enabled: Boolean(maker) && isDeployed() },
+  });
+}
+
 export const PAUSED = [
   "Live",
   "Paused — price outside envelope",

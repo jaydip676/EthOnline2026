@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { href: "/grid", label: "Grid" },
   { href: "/position", label: "Position" },
+  { href: "/coverage", label: "Coverage" },
 ];
 
 const network = CHAIN_ID === 11155111 ? "Sepolia" : "Base";

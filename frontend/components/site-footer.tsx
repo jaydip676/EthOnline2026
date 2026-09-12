@@ -13,6 +13,7 @@ const contracts = [
 const pages = [
   { href: "/grid", label: "Grid" },
   { href: "/position", label: "Position" },
+  { href: "/coverage", label: "Coverage" },
 ];
 
 export function SiteFooter() {
@@ -25,8 +26,8 @@ export function SiteFooter() {
             Ladder
           </p>
           <p className="mt-3 text-[13px] leading-relaxed text-mist/90">
-            CEX-style grid as maker liquidity on 1inch Aqua. Tokens never leave the wallet. No
-            keeper. The grid goes dark in a crash.
+            Bounding SLAC on 1inch Aqua. Coverage stops underfunded rungs from quoting. Tokens
+            never leave the wallet.
           </p>
         </div>
         <div>

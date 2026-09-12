@@ -31,6 +31,13 @@ export function formatUsd(price1e18: bigint, maxFrac = 2): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: maxFrac, minimumFractionDigits: maxFrac });
 }
 
+export function formatSlac(wad: bigint | undefined, maxFrac = 2): string {
+  if (wad === undefined) return "—";
+  const n = Number(formatUnits(wad, 18));
+  if (!Number.isFinite(n)) return "—";
+  return `${n.toFixed(maxFrac)}×`;
+}
+
 export function formatBps(bps: number): string {
   return `${(bps / 100).toFixed(bps % 100 === 0 ? 0 : 2)}%`;
 }

@@ -18,7 +18,7 @@ const mono = IBM_Plex_Mono({
 });
 
 const description =
-  "CEX-style grid trading as maker liquidity on 1inch Aqua. Tokens never leave the wallet. No keeper. The grid goes dark in a crash.";
+  "Bounding SLAC on 1inch Aqua. Coverage stops underfunded rungs from quoting. Tokens stay in the wallet.";
 
 export const metadata: Metadata = {
   title: {
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   description,
   applicationName: "Ladder",
-  keywords: ["1inch", "Aqua", "SwapVM", "grid", "Base"],
+  keywords: ["1inch", "Aqua", "SwapVM", "SLAC", "coverage", "grid", "Base"],
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
   },

@@ -28,7 +28,6 @@ import {
 } from "@/lib/addresses";
 import { formatToken, formatUsd } from "@/lib/format";
 import {
-  DEFAULT_COVERAGE_BPS,
   DEFAULT_PROTOCOL_FEE,
   DEFAULT_STALENESS,
   mulBps,
@@ -53,6 +52,7 @@ export function GridWizard() {
   const [commit, setCommit] = useState(20);
   const [range, setRange] = useState(6);
   const [envelope, setEnvelope] = useState(10);
+  const [coverage, setCoverage] = useState(40);
   const [rungs, setRungs] = useState(8);
   const [mode, setMode] = useState<Mode>(0);
   const [tier, setTier] = useState<Tier>(0);
@@ -93,6 +93,7 @@ export function GridWizard() {
   const ethCap = mulBps(ethBal, commit * 100);
   const usdcCap = mulBps(usdBal, commit * 100);
   const worst = worstCaseInventory(ethBal, usdBal, commit * 100, rungs, spot);
+  const quotedSlac = (rungs * commit) / 100;
   const spendableEth = ethBal - (tier === 1 ? ethCap : 0n);
   const spendableUsdc = usdBal - (tier === 1 ? usdcCap : 0n);
 
@@ -124,7 +125,7 @@ export function GridWizard() {
         envelopeBps: envelope * 100,
         rungCount: rungs,
         maxShareBps: commit * 100,
-        minCoverageBps: DEFAULT_COVERAGE_BPS,
+        minCoverageBps: coverage * 100,
         protocolFeeBps: DEFAULT_PROTOCOL_FEE,
         maxStaleness: DEFAULT_STALENESS,
         wethDecimals: WETH.decimals,
@@ -282,6 +283,14 @@ export function GridWizard() {
                 suffix={` ±${envelope}% — outside this, every rung stops`}
                 onChange={setEnvelope}
               />
+              <SliderField
+                label="Coverage floor"
+                value={coverage}
+                min={10}
+                max={100}
+                suffix={` ${coverage}% — below this the rung stops quoting`}
+                onChange={setCoverage}
+              />
               <SliderField label="Rungs" value={rungs} min={4} max={16} suffix={` ${rungs} levels`} onChange={setRungs} />
 
               <div className="grid gap-2 sm:grid-cols-2">
@@ -330,7 +339,8 @@ export function GridWizard() {
             <CardHeader>
               <CardTitle>Ladder preview</CardTitle>
               <CardDescription>
-                Spot {formatUsd(spot)} · round trip {preview.roundTripBps.toFixed(1)} bps · fee 5 bps
+                Spot {formatUsd(spot)} · round trip {preview.roundTripBps.toFixed(1)} bps · quoted SLAC{" "}
+                {quotedSlac.toFixed(1)}× · fee 5 bps
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-5">

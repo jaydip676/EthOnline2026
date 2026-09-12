@@ -9,8 +9,8 @@ import { USDC, WETH } from "@/lib/tokens";
 
 const facts = [
   { label: "Custody", value: "Your wallet" },
-  { label: "Keeper", value: "None" },
-  { label: "Crash", value: "Grid goes dark" },
+  { label: "SLAC", value: "Measured" },
+  { label: "Coverage", value: "On-chain floor" },
   { label: "Pair", value: "WETH / USDC" },
 ];
 
@@ -27,8 +27,8 @@ const features = [
   },
   {
     icon: ShieldOffIcon,
-    title: "An envelope, not a range",
-    body: "Outside Chainlink ±10% every rung stops. On recovery it comes back live. That is why this is not an LP product.",
+    title: "Coverage, not a sermon",
+    body: "Aqua defines SLAC and shows 9×. It never says what is safe. Below your coverage floor the rung stops quoting.",
   },
 ];
 
@@ -44,11 +44,11 @@ export default function HomePage() {
               1inch Aqua · SwapVM · Chainlink
             </span>
             <h1 className="mt-6 text-[2.5rem] leading-[1.06] font-semibold tracking-[-0.03em] text-pretty sm:text-[3.25rem]">
-              A grid bot that never takes your coins.
+              The whitepaper defines SLAC. It never says what is safe.
             </h1>
             <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-pretty text-mist/90">
-              CEX-style maker quotes on Aqua. One wallet balance backs every rung. No keeper, no
-              delegated key, and the whole grid goes dark in a crash.
+              Ladder bounds it on 1inch Aqua: a live share of the wallet, a coverage floor that
+              auto-docks underfunded rungs, and a grid that measures where SLAC actually breaks.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button size="lg" className="bg-[#F4FBFD] text-ink hover:bg-[#F4FBFD]/92" asChild>
@@ -58,7 +58,7 @@ export default function HomePage() {
                 </Link>
               </Button>
               <Button size="lg" variant="cta" asChild>
-                <Link href="/position">Watch position</Link>
+                <Link href="/coverage">Watch coverage</Link>
               </Button>
             </div>
           </div>

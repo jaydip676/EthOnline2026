@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { aquaAbi, erc20Abi, gridManagerAbi } from "@/lib/abi";
 import { AQUA, GRID_MANAGER, ROUTER, USDC_TOKEN, WETH_TOKEN, isDeployed } from "@/lib/addresses";
-import { formatToken, formatUsd } from "@/lib/format";
+import { formatSlac, formatToken, formatUsd } from "@/lib/format";
 import { runIntent } from "@/lib/intent";
 import { useFills } from "@/lib/useFills";
 import { PAUSED, useGridCount, useGridView, useReliability, useRungs } from "@/lib/useGrid";
@@ -213,6 +213,7 @@ export function PositionPanel() {
           <CardContent className="divide-rule">
             <DataRow label="Oracle" value={<span className="num">{formatUsd(view.oraclePrice)}</span>} />
             <DataRow label="Envelope" value={<span className="num">{formatUsd(view.floor)} – {formatUsd(view.ceiling)}</span>} />
+            <DataRow label="SLAC" value={<span className="num">{formatSlac(view.slac)}</span>} />
             <DataRow
               label="Spendable now"
               value={
