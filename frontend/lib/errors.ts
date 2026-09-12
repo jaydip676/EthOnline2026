@@ -15,6 +15,9 @@ export function shortError(error: unknown): string {
   if (/InsufficientWalletBalance/i.test(raw)) {
     return "This rung cannot fill — wallet balance or the 20% share cap is too small.";
   }
+  if (/CoverageBreach/i.test(raw)) {
+    return "Coverage is below the floor. This rung stops quoting until the wallet can back it.";
+  }
   if (/UnknownOpcode/i.test(raw)) {
     return "This SwapVM does not support that program. Check the router address.";
   }

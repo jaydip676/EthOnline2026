@@ -8,6 +8,7 @@ import {ISwapVM} from "swap-vm/src/interfaces/ISwapVM.sol";
 
 import {OracleEnvelope} from "./instructions/OracleEnvelope.sol";
 import {WalletGuard} from "./instructions/WalletGuard.sol";
+import {CoverageGuard} from "./instructions/CoverageGuard.sol";
 import {RungQuote} from "./instructions/RungQuote.sol";
 import {ProtocolFee} from "./instructions/ProtocolFee.sol";
 import {GridLib} from "./libraries/GridLib.sol";
@@ -76,6 +77,10 @@ contract GridManager {
         program = bytes.concat(
             program,
             WalletGuard.build(p.usdc, p.maxShareBps, p.aqua)
+        );
+        program = bytes.concat(
+            program,
+            CoverageGuard.build(p.minCoverageBps, p.maxShareBps, p.aqua)
         );
         program = bytes.concat(
             program,

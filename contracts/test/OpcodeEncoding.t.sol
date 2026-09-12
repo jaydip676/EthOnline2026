@@ -11,6 +11,8 @@ import {CoverageGuard} from "../src/instructions/CoverageGuard.sol";
 import {RungQuote} from "../src/instructions/RungQuote.sol";
 import {ProtocolFee} from "../src/instructions/ProtocolFee.sol";
 import {GridLib} from "../src/libraries/GridLib.sol";
+import {GridManager} from "../src/GridManager.sol";
+import {LadderRouter} from "../src/LadderRouter.sol";
 
 contract OpcodeEncodingTest is Test {
     function test_oracleEnvelopeSlot() public pure {
@@ -71,5 +73,39 @@ contract OpcodeEncodingTest is Test {
         assertEq(GridLib.halfSpread(p) * 2, GridLib.spacing(p));
         assertEq(GridLib.envelopeFloor(p), 2250e18);
         assertEq(GridLib.envelopeCeiling(p), 2750e18);
+    }
+
+    function test_rungProgramIncludesCoverageGuard() public {
+        GridLib.GridParams memory p;
+        p.spot = 2500e18;
+        p.rangeBps = 600;
+        p.envelopeBps = 1_000;
+        p.rungCount = 8;
+        p.maxShareBps = 2_000;
+        p.minCoverageBps = 4_000;
+        p.maker = address(1);
+        p.weth = address(2);
+        p.usdc = address(3);
+        p.oracle = address(4);
+        p.treasury = address(5);
+        p.aqua = address(6);
+        p.protocolFeeBps = 5_000;
+        p.maxStaleness = 3_600;
+        p.wethDecimals = 18;
+        p.usdcDecimals = 6;
+        p.ethCap = 1e18;
+        p.usdcCap = 1e6;
+
+        GridManager manager = new GridManager(LadderRouter(payable(address(1))));
+        bytes memory program = manager.buildRungProgram(p, 0);
+        bool found;
+        uint256 i;
+        while (i + 1 < program.length) {
+            uint8 op = uint8(program[i]);
+            uint256 len = uint8(program[i + 1]);
+            if (op == uint8(Opcode._29)) found = true;
+            i += 2 + len;
+        }
+        assertTrue(found, "program must include CoverageGuard");
     }
 }

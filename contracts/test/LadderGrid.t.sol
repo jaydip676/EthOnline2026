@@ -277,6 +277,13 @@ contract LadderGridTest is ForkRpc {
         assertEq(gv.oraclePrice, SPOT);
         assertEq(uint8(gv.envelopeState), uint8(GridLib.PausedReason.None));
         assertGt(gv.spendableWeth, 0);
+        assertGt(gv.slac, 1e18, "SLAC is provisioned / equity, above 1x");
+        LadderLens.RungView[] memory rs = lens.rungs(maker, 0);
+        assertTrue(rs[3].bidLive, "lens must probe quote");
+        assertTrue(rs[3].askLive);
+        assertEq(uint8(rs[3].pausedReason), uint8(GridLib.PausedReason.None));
+        assertGt(rs[3].virtualWeth, 0);
+        assertEq(rs[3].coverageWeth, 10_000);
     }
 
     function externalSwap(uint256 rung, bool takerSellsWeth, uint256 amount)

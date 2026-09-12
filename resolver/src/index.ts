@@ -31,7 +31,7 @@ const MIN_MARGIN_BPS = Number(process.env.MIN_MARGIN_BPS ?? 10);
 const ONEINCH_API_KEY = process.env.ONEINCH_API_KEY ?? "";
 
 const lensAbi = parseAbi([
-  "function rungs(address maker, uint256 gridId) view returns ((uint256 index, uint256 level, uint256 bidPrice, uint256 askPrice, bool bidLive, bool askLive, uint8 pausedReason, uint256 virtualWeth, uint256 virtualUsdc, uint256 realAvailableWeth, uint256 realAvailableUsdc)[])",
+  "function rungs(address maker, uint256 gridId) view returns ((uint256 index, uint256 level, uint256 bidPrice, uint256 askPrice, bool bidLive, bool askLive, uint8 pausedReason, uint256 virtualWeth, uint256 virtualUsdc, uint256 realAvailableWeth, uint256 realAvailableUsdc, uint256 coverageWeth, uint256 coverageUsdc)[])",
 ]);
 
 const managerAbi = parseAbi([
