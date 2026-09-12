@@ -41,7 +41,8 @@ import { runIntent, type IntentCall } from "@/lib/intent";
 import { explainRisk } from "@/lib/riskExplainer";
 import { encodeOrder, nextSalt, type SwapVMOrder } from "@/lib/strategy";
 import { USDC, WETH } from "@/lib/tokens";
-import { TokenAmount, TokenBalanceRow, TokenLabel, TokenPair, RungPrice } from "@/components/token-avatar";
+import { TokenAmount, TokenBalanceRow, TokenLabel, TokenPair } from "@/components/token-avatar";
+import { LadderPreview } from "@/components/ladder-preview";
 import { toastTxErr, toastTxOk } from "@/lib/tx";
 import { useReliability } from "@/lib/useGrid";
 
@@ -396,26 +397,12 @@ export function GridWizard() {
                 min={Number(preview.floor) / 1e18}
                 max={Number(preview.ceiling) / 1e18}
                 spot={Number(spot) / 1e18}
-                unit="ETH/USD"
+                unit="USDC / WETH"
+                formatLabel={(n) =>
+                  `$${n.toLocaleString(undefined, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}`
+                }
               />
-              <ol className="grid gap-1.5">
-                {preview.levels.map((level, i) => (
-                  <li key={i} className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2 text-[13px]">
-                    <span className="text-muted-foreground">Rung {i + 1}</span>
-                    <span className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
-                      <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                        bid
-                        <RungPrice price={preview.bids[i]!} />
-                      </span>
-                      <RungPrice price={level} />
-                      <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                        ask
-                        <RungPrice price={preview.asks[i]!} />
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
+              <LadderPreview preview={preview} spot={spot} />
               <Alert variant="warning">
                 <AlertTitle>A grid buys the dip by design</AlertTitle>
                 <AlertDescription>

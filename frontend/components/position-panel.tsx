@@ -12,14 +12,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { aquaAbi, erc20Abi, gridManagerAbi } from "@/lib/abi";
 import { AQUA, GRID_MANAGER, ROUTER, USDC_TOKEN, WETH_TOKEN, isDeployed } from "@/lib/addresses";
 import { formatSlac, formatUsd } from "@/lib/format";
@@ -28,7 +20,8 @@ import { useFills } from "@/lib/useFills";
 import { PAUSED, useGridCount, useGridView, useReliability, useRungs } from "@/lib/useGrid";
 import { toastTxErr, toastTxOk } from "@/lib/tx";
 import { USDC, WETH } from "@/lib/tokens";
-import { TokenAmount, TokenAvatar, TokenLabel, TokenPair, RungPrice } from "@/components/token-avatar";
+import { TokenAmount, TokenPair } from "@/components/token-avatar";
+import { RungLadder } from "@/components/ladder-preview";
 
 export function PositionPanel() {
   const { address, isConnected } = useAccount();
@@ -281,53 +274,24 @@ export function PositionPanel() {
             <TokenPair size="xs" />
             Rungs
           </CardTitle>
-          <CardDescription>WETH / USDC. A rung must never show Live when it cannot fill.</CardDescription>
+          <CardDescription>A rung must never show Live when it cannot fill.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead>#</TableHead>
-                <TableHead>
-                  <TokenLabel token={WETH}>Level</TokenLabel>
-                </TableHead>
-                <TableHead>
-                  <span className="inline-flex items-center gap-1.5">
-                    <TokenAvatar token={WETH} size="xs" />
-                    Bid
-                  </span>
-                </TableHead>
-                <TableHead>
-                  <span className="inline-flex items-center gap-1.5">
-                    <TokenAvatar token={WETH} size="xs" />
-                    Ask
-                  </span>
-                </TableHead>
-                <TableHead>State</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(rungs ?? []).map((rung) => (
-                <TableRow key={rung.index.toString()}>
-                  <TableCell className="num">{rung.index.toString()}</TableCell>
-                  <TableCell>
-                    <RungPrice price={rung.level} />
-                  </TableCell>
-                  <TableCell>
-                    <RungPrice price={rung.bidPrice} live={rung.bidLive} />
-                  </TableCell>
-                  <TableCell>
-                    <RungPrice price={rung.askPrice} live={rung.askLive} />
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={rung.bidLive || rung.askLive ? "success" : "secondary"}>
-                      {rung.bidLive || rung.askLive ? "Live" : (PAUSED[rung.pausedReason] ?? "Paused")}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <RungLadder
+            showState
+            spot={view.oraclePrice}
+            rows={(rungs ?? []).map((rung) => ({
+              id: rung.index.toString(),
+              level: rung.level,
+              bid: rung.bidPrice,
+              ask: rung.askPrice,
+              bidLive: rung.bidLive,
+              askLive: rung.askLive,
+              stateLive: rung.bidLive || rung.askLive,
+              stateLabel:
+                rung.bidLive || rung.askLive ? "Live" : (PAUSED[rung.pausedReason] ?? "Paused"),
+            }))}
+          />
         </CardContent>
       </Card>
 

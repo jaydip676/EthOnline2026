@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { formatToken, formatUsd } from "@/lib/format";
+import { formatToken } from "@/lib/format";
 import { tokenByAddress, tokenBySymbol, USDC, WETH, type TokenMeta } from "@/lib/tokens";
 
 export type TokenSize = "xs" | "sm" | "md" | "lg";
@@ -87,25 +87,6 @@ export function TokenLabel({
     <span className={cn("inline-flex items-center gap-1.5", className)}>
       <TokenAvatar token={resolved ?? token} size={size} />
       <span>{children ?? resolved?.symbol ?? String(token)}</span>
-    </span>
-  );
-}
-
-export function RungPrice({
-  price,
-  live = true,
-  className,
-}: {
-  price: bigint;
-  live?: boolean;
-  className?: string;
-}) {
-  if (!live) return <span className={cn("text-muted-foreground", className)}>—</span>;
-  return (
-    <span className={cn("inline-flex items-center gap-1.5 num", className)} title="WETH priced in USDC">
-      <TokenAvatar token={WETH} size="xs" />
-      {formatUsd(price)}
-      <TokenAvatar token={USDC} size="xs" />
     </span>
   );
 }

@@ -10,12 +10,14 @@ export function RangeBar({
   max,
   spot,
   unit = "token1 / token0",
+  formatLabel,
   className,
 }: {
   min: number;
   max: number;
   spot?: number;
   unit?: string;
+  formatLabel?: (value: number) => string;
   className?: string;
 }) {
   if (!(min > 0) || !(max > min)) {
@@ -48,18 +50,18 @@ export function RangeBar({
         ) : null}
       </div>
       <div className="flex justify-between text-[11px] text-muted-foreground">
-        <span className="num">{min}</span>
+        <span className="num">{formatLabel ? formatLabel(min) : min}</span>
         <span className={inRange ? "text-muted-foreground" : "text-destructive"}>
           {spot ? (
             <>
-              spot <span className="num">{Number(spot.toPrecision(3))}</span>
+              spot <span className="num">{formatLabel ? formatLabel(spot) : Number(spot.toPrecision(3))}</span>
               {inRange ? "" : " · outside range"}
             </>
           ) : (
             unit
           )}
         </span>
-        <span className="num">{max}</span>
+        <span className="num">{formatLabel ? formatLabel(max) : max}</span>
       </div>
     </div>
   );
