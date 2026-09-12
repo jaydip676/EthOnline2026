@@ -7,6 +7,7 @@ import {Salt} from "swap-vm/src/instructions/Controls.sol";
 
 import {OracleEnvelope} from "../src/instructions/OracleEnvelope.sol";
 import {WalletGuard} from "../src/instructions/WalletGuard.sol";
+import {CoverageGuard} from "../src/instructions/CoverageGuard.sol";
 import {RungQuote} from "../src/instructions/RungQuote.sol";
 import {ProtocolFee} from "../src/instructions/ProtocolFee.sol";
 import {GridLib} from "../src/libraries/GridLib.sol";
@@ -22,6 +23,12 @@ contract OpcodeEncodingTest is Test {
         bytes memory encoded = WalletGuard.build(address(0xA), 2_000, address(0xB));
         assertEq(uint8(encoded[0]), uint8(Opcode._28));
         assertEq(uint8(encoded[1]), 42);
+    }
+
+    function test_coverageGuardSlot() public pure {
+        bytes memory encoded = CoverageGuard.build(4_000, 2_000, address(0xB));
+        assertEq(uint8(encoded[0]), uint8(Opcode._29));
+        assertEq(uint8(encoded[1]), 24);
     }
 
     function test_rungQuoteSlot() public pure {
@@ -48,6 +55,7 @@ contract OpcodeEncodingTest is Test {
         p.envelopeBps = 1_000;
         p.rungCount = 8;
         p.maxShareBps = 2_000;
+        p.minCoverageBps = 4_000;
         p.maker = address(1);
         p.weth = address(2);
         p.usdc = address(3);

@@ -49,6 +49,7 @@ export const PAUSED = [
   "Paused — price outside envelope",
   "Paused — oracle stale",
   "Paused — insufficient balance",
+  "Paused — coverage breach",
   "Paused — allowance revoked",
   "Off (docked)",
 ] as const;

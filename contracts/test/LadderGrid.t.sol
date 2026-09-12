@@ -65,6 +65,7 @@ contract LadderGridTest is ForkRpc {
             envelopeBps: GridLib.DEFAULT_ENVELOPE_BPS,
             rungCount: GridLib.DEFAULT_RUNGS,
             maxShareBps: GridLib.DEFAULT_COMMIT_BPS,
+            minCoverageBps: GridLib.DEFAULT_COVERAGE_BPS,
             protocolFeeBps: GridLib.DEFAULT_PROTOCOL_FEE,
             maxStaleness: GridLib.DEFAULT_STALENESS,
             wethDecimals: 18,

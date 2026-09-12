@@ -80,6 +80,7 @@ export function PositionPanel() {
                       { name: "envelopeBps", type: "uint16" },
                       { name: "rungCount", type: "uint8" },
                       { name: "maxShareBps", type: "uint16" },
+                      { name: "minCoverageBps", type: "uint16" },
                       { name: "protocolFeeBps", type: "uint24" },
                       { name: "maxStaleness", type: "uint32" },
                       { name: "wethDecimals", type: "uint8" },

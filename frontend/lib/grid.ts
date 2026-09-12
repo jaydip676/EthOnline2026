@@ -2,6 +2,7 @@ export const BPS = 10_000n;
 export const ONE = 10n ** 18n;
 export const FEE_SCALE = 10_000_000n;
 export const DEFAULT_PROTOCOL_FEE = 5_000; // 5 bps, 1e7 scale
+export const DEFAULT_COVERAGE_BPS = 4_000; // 40%
 export const DEFAULT_STALENESS = 3_600;
 
 export type Mode = 0 | 1 | 2; // Grid, Buy, Sell

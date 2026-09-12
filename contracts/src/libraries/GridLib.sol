@@ -12,6 +12,7 @@ library GridLib {
     uint16 internal constant DEFAULT_COMMIT_BPS = 2_000; // 20%
     uint16 internal constant DEFAULT_RANGE_BPS = 600; // ±6%
     uint16 internal constant DEFAULT_ENVELOPE_BPS = 1_000; // ±10%
+    uint16 internal constant DEFAULT_COVERAGE_BPS = 4_000; // 40%
     uint8 internal constant DEFAULT_RUNGS = 8;
     uint32 internal constant DEFAULT_STALENESS = 3_600;
 
@@ -31,6 +32,7 @@ library GridLib {
         EnvelopeClosed,
         OracleStale,
         InsufficientBalance,
+        CoverageBreach,
         AllowanceRevoked,
         Docked
     }
@@ -47,6 +49,7 @@ library GridLib {
         uint16 envelopeBps;
         uint8 rungCount;
         uint16 maxShareBps;
+        uint16 minCoverageBps;
         uint24 protocolFeeBps;
         uint32 maxStaleness;
         uint8 wethDecimals;
@@ -78,6 +81,7 @@ library GridLib {
         if (p.envelopeBps == 0 || p.envelopeBps >= BPS) revert BadBps();
         if (p.envelopeBps <= p.rangeBps) revert BadBps();
         if (p.maxShareBps == 0 || p.maxShareBps > BPS) revert BadBps();
+        if (p.minCoverageBps == 0 || p.minCoverageBps > BPS) revert BadBps();
         if (p.spot == 0) revert ZeroSpot();
     }
 

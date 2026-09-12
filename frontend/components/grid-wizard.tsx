@@ -28,6 +28,7 @@ import {
 } from "@/lib/addresses";
 import { formatToken, formatUsd } from "@/lib/format";
 import {
+  DEFAULT_COVERAGE_BPS,
   DEFAULT_PROTOCOL_FEE,
   DEFAULT_STALENESS,
   mulBps,
@@ -123,6 +124,7 @@ export function GridWizard() {
         envelopeBps: envelope * 100,
         rungCount: rungs,
         maxShareBps: commit * 100,
+        minCoverageBps: DEFAULT_COVERAGE_BPS,
         protocolFeeBps: DEFAULT_PROTOCOL_FEE,
         maxStaleness: DEFAULT_STALENESS,
         wethDecimals: WETH.decimals,
