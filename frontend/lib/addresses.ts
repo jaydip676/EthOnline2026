@@ -10,7 +10,6 @@ export type Deployments = {
   weth: Address;
   usdc: Address;
   chainlinkAdapter: Address;
-  mockOracle: Address;
   treasury: Address;
   startBlock: number;
 };
@@ -25,11 +24,10 @@ export const LENS = (process.env.NEXT_PUBLIC_LENS as Address | undefined) ?? ADD
 export const WETH_TOKEN = (process.env.NEXT_PUBLIC_WETH as Address | undefined) ?? ADDRESSES.weth;
 export const USDC_TOKEN = (process.env.NEXT_PUBLIC_USDC as Address | undefined) ?? ADDRESSES.usdc;
 export const ORACLE =
-  (process.env.NEXT_PUBLIC_ORACLE as Address | undefined) ??
-  (ADDRESSES.mockOracle !== zeroAddress ? ADDRESSES.mockOracle : ADDRESSES.chainlinkAdapter);
+  (process.env.NEXT_PUBLIC_ORACLE as Address | undefined) ?? ADDRESSES.chainlinkAdapter;
 export const TREASURY = (process.env.NEXT_PUBLIC_TREASURY as Address | undefined) ?? ADDRESSES.treasury;
 export const START_BLOCK = BigInt(process.env.NEXT_PUBLIC_START_BLOCK ?? String(ADDRESSES.startBlock ?? 0));
-export const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID ?? ADDRESSES.chainId ?? 8453);
+export const CHAIN_ID = 8453;
 
 export function isDeployed(): boolean {
   return ROUTER !== zeroAddress && GRID_MANAGER !== zeroAddress && LENS !== zeroAddress;

@@ -7,7 +7,7 @@ import { WagmiProvider } from "wagmi";
 import { useState, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { wagmiConfig } from "@/lib/wagmi";
+import { wagmiConfig, chain } from "@/lib/wagmi";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -22,6 +22,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
+          initialChain={chain}
           theme={lightTheme({
             accentColor: "#219EBC",
             accentColorForeground: "#F4FBFD",

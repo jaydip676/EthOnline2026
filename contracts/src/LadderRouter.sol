@@ -8,7 +8,7 @@ import {LadderOpcodes} from "./LadderOpcodes.sol";
 
 /// @notice Redeployed SwapVM router pointed at official Aqua, with Ladder custom opcodes.
 /// @dev Taker access is permissionless. A grid rung is a resting order.
-///      `weth` is canonical chain WETH (Base / Sepolia), not a mock pair token.
+///      `weth` is canonical Base WETH (`0x4200…0006`), not a mock pair token.
 contract LadderRouter is Simulator, SwapVM, LadderOpcodes {
     address public immutable CHAINLINK_FEED;
     address public immutable TREASURY;

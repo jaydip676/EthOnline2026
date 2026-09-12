@@ -7,9 +7,9 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { LiveDot } from "@/components/live-dot";
 import { LogoMark } from "@/components/logo-mark";
+import { TokenPair } from "@/components/token-avatar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { CHAIN_ID } from "@/lib/addresses";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -18,7 +18,7 @@ const links = [
   { href: "/coverage", label: "Coverage" },
 ];
 
-const network = CHAIN_ID === 11155111 ? "Sepolia" : "Base";
+const network = "Base";
 
 export function SiteHeader() {
   const path = usePathname();
@@ -33,6 +33,7 @@ export function SiteHeader() {
           <span className="hidden rounded-full bg-gold px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-ink uppercase sm:inline">
             Aqua
           </span>
+          <TokenPair size="xs" className="sm:hidden" />
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
@@ -58,11 +59,12 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2.5">
           <span
-            title={`Live contracts on ${network}`}
-            className="hidden items-center gap-2 rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[11px] font-medium text-muted-foreground sm:inline-flex"
+            title={`WETH / USDC on ${network}`}
+            className="hidden items-center gap-2 rounded-full border border-border bg-muted/50 py-1 pr-2.5 pl-1.5 text-[11px] font-medium text-muted-foreground sm:inline-flex"
           >
+            <TokenPair size="xs" ringClassName="ring-muted/80" />
             <LiveDot on />
-            {network}
+            WETH / USDC · {network}
           </span>
           <div className="hidden sm:block">
             <ConnectButton chainStatus="none" showBalance={false} accountStatus="address" />

@@ -6,7 +6,7 @@ export type TokenMeta = {
   name: string;
   address: Address;
   decimals: number;
-  accent: string;
+  icon: "/tokens/weth.svg" | "/tokens/usdc-icon.svg";
 };
 
 export const WETH: TokenMeta = {
@@ -14,7 +14,7 @@ export const WETH: TokenMeta = {
   name: "Wrapped Ether",
   address: WETH_TOKEN,
   decimals: 18,
-  accent: "from-[#219EBC] to-[#023047]",
+  icon: "/tokens/weth.svg",
 };
 
 export const USDC: TokenMeta = {
@@ -22,5 +22,19 @@ export const USDC: TokenMeta = {
   name: "USD Coin",
   address: USDC_TOKEN,
   decimals: 6,
-  accent: "from-[#FFB703] to-[#FB8500] text-ink",
+  icon: "/tokens/usdc-icon.svg",
 };
+
+export const TOKENS = [WETH, USDC] as const;
+
+export function tokenByAddress(address?: string | null): TokenMeta | undefined {
+  if (!address) return undefined;
+  const needle = address.toLowerCase();
+  return TOKENS.find((token) => token.address.toLowerCase() === needle);
+}
+
+export function tokenBySymbol(symbol: string): TokenMeta | undefined {
+  const needle = symbol.toUpperCase();
+  if (needle === "ETH") return WETH;
+  return TOKENS.find((token) => token.symbol === needle);
+}

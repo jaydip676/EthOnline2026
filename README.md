@@ -99,7 +99,7 @@ The Ladder resolver is the v1 counterparty so fills exist before external takers
 ## Quick start
 
 ```bash
-# Contracts (needs a Base or Sepolia RPC with official Aqua)
+# Contracts (needs a Base RPC with official Aqua)
 cd contracts
 cp .env.example .env
 forge install foundry-rs/forge-std
@@ -120,7 +120,7 @@ pnpm --filter ladder-resolver start
 
 Default commit is 20% of the wallet — a live share, not a frozen number. Docking is N `Aqua.dock` calls from the wallet. Revoking the Aqua allowance turns off every Aqua position that wallet holds.
 
-`frontend/lib/deployments.json` is zeros until:
+`frontend/lib/deployments.json` is the live Base deployment. To redeploy:
 
 ```bash
 cd contracts

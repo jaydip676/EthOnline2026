@@ -21,6 +21,8 @@ import {
 import { formatBps, formatSlac, formatToken } from "@/lib/format";
 import { useFills } from "@/lib/useFills";
 import { PAUSED, useGridCount, useGridView, useMakerView, useRegisteredGrid, useRungs } from "@/lib/useGrid";
+import { USDC, WETH } from "@/lib/tokens";
+import { TokenAmount, TokenLabel, TokenPair } from "@/components/token-avatar";
 
 function coverageBadge(bps: bigint, floorBps: number) {
   const n = Number(bps);
@@ -58,6 +60,12 @@ export function CoveragePanel() {
           eyebrow="Judge screen"
           title="Coverage"
           description="Whitepaper §6.3: monitor virtual versus real balance ratios. Ship a grid first."
+          action={
+            <span className="inline-flex items-center gap-2 text-[13px] text-muted-foreground">
+              <TokenPair size="sm" />
+              WETH / USDC
+            </span>
+          }
         />
         <Card>
           <CardHeader>
@@ -83,9 +91,15 @@ export function CoveragePanel() {
         title="Coverage"
         description="Quoted versus real available, per rung. SLAC is defined in Aqua §4.1 and unbounded there. Ladder measures it and stops quotes below the coverage floor."
         action={
-          <Button variant="outline" asChild>
-            <Link href="/position">Position</Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="inline-flex items-center gap-2 text-[13px] text-muted-foreground">
+              <TokenPair size="sm" />
+              WETH / USDC
+            </span>
+            <Button variant="outline" asChild>
+              <Link href="/position">Position</Link>
+            </Button>
+          </div>
         }
       />
 
@@ -104,8 +118,9 @@ export function CoveragePanel() {
             <DataRow
               label="Spendable now"
               value={
-                <span className="num">
-                  {formatToken(view.spendableWeth, 18, 4)} ETH · {formatToken(view.spendableUsdc, 6, 2)} USDC
+                <span className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                  <TokenAmount token={WETH} amount={view.spendableWeth} />
+                  <TokenAmount token={USDC} amount={view.spendableUsdc} />
                 </span>
               }
             />
@@ -189,14 +204,32 @@ export function CoveragePanel() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead>#</TableHead>
-                <TableHead>State</TableHead>
-                <TableHead className="text-right">Virt WETH</TableHead>
-                <TableHead className="text-right">Real WETH</TableHead>
-                <TableHead className="text-right">WETH cov</TableHead>
-                <TableHead className="text-right">Virt USDC</TableHead>
-                <TableHead className="text-right">Real USDC</TableHead>
-                <TableHead className="text-right">USDC cov</TableHead>
+                <TableHead rowSpan={2} className="align-bottom">
+                  #
+                </TableHead>
+                <TableHead rowSpan={2} className="align-bottom">
+                  State
+                </TableHead>
+                <TableHead
+                  colSpan={3}
+                  className="border-l bg-primary/6 text-center font-medium tracking-normal text-foreground normal-case"
+                >
+                  <TokenLabel token={WETH} className="justify-center" size="sm" />
+                </TableHead>
+                <TableHead
+                  colSpan={3}
+                  className="border-l bg-gold/15 text-center font-medium tracking-normal text-foreground normal-case"
+                >
+                  <TokenLabel token={USDC} className="justify-center" size="sm" />
+                </TableHead>
+              </TableRow>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="border-l bg-primary/6 text-right">Virt</TableHead>
+                <TableHead className="bg-primary/6 text-right">Real</TableHead>
+                <TableHead className="bg-primary/6 text-right">Cov</TableHead>
+                <TableHead className="border-l bg-gold/15 text-right">Virt</TableHead>
+                <TableHead className="bg-gold/15 text-right">Real</TableHead>
+                <TableHead className="bg-gold/15 text-right">Cov</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -212,14 +245,22 @@ export function CoveragePanel() {
                         {live ? "Live" : (PAUSED[rung.pausedReason] ?? "Paused")}
                       </Badge>
                     </TableCell>
-                    <TableCell className="num text-right">{formatToken(rung.virtualWeth, 18, 4)}</TableCell>
-                    <TableCell className="num text-right">{formatToken(rung.realAvailableWeth, 18, 4)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="num border-l bg-primary/[0.04] text-right">
+                      {formatToken(rung.virtualWeth, 18, 4)}
+                    </TableCell>
+                    <TableCell className="num bg-primary/[0.04] text-right">
+                      {formatToken(rung.realAvailableWeth, 18, 4)}
+                    </TableCell>
+                    <TableCell className="bg-primary/[0.04] text-right">
                       <Badge variant={weth.variant}>{weth.label}</Badge>
                     </TableCell>
-                    <TableCell className="num text-right">{formatToken(rung.virtualUsdc, 6, 2)}</TableCell>
-                    <TableCell className="num text-right">{formatToken(rung.realAvailableUsdc, 6, 2)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="num border-l bg-gold/[0.08] text-right">
+                      {formatToken(rung.virtualUsdc, 6, 2)}
+                    </TableCell>
+                    <TableCell className="num bg-gold/[0.08] text-right">
+                      {formatToken(rung.realAvailableUsdc, 6, 2)}
+                    </TableCell>
+                    <TableCell className="bg-gold/[0.08] text-right">
                       <Badge variant={usdc.variant}>{usdc.label}</Badge>
                     </TableCell>
                   </TableRow>

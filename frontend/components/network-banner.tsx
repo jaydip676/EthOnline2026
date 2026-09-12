@@ -2,26 +2,29 @@
 
 import { AlertTriangleIcon } from "lucide-react";
 import { useAccount, useSwitchChain } from "wagmi";
+import { TokenPair } from "@/components/token-avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { CHAIN_ID } from "@/lib/addresses";
 import { chain } from "@/lib/wagmi";
 
 export function NetworkBanner() {
   const { isConnected, chainId } = useAccount();
   const { switchChain, isPending } = useSwitchChain();
-  if (!isConnected || chainId === CHAIN_ID) return null;
+  if (!isConnected || chainId === chain.id) return null;
 
   return (
     <Alert variant="warning" className="mb-6 animate-enter">
       <AlertTriangleIcon />
       <AlertTitle>Wrong network</AlertTitle>
       <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p>Ladder is deployed on {chain.name}.</p>
+        <p className="inline-flex items-center gap-2">
+          <TokenPair size="xs" />
+          Ladder quotes WETH / USDC on {chain.name}.
+        </p>
         <Button
           size="sm"
           variant="outline"
-          onClick={() => switchChain({ chainId: CHAIN_ID })}
+          onClick={() => switchChain({ chainId: chain.id })}
           disabled={isPending}
           loading={isPending}
         >

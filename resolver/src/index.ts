@@ -23,14 +23,14 @@ import {
   type Hex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { base, sepolia } from "viem/chains";
+import { base } from "viem/chains";
 import { erc20Abi, lensAbi, managerAbi, routerAbi } from "./abi";
 
 loadDotEnv();
 
 const ZERO = "0x0000000000000000000000000000000000000000" as Address;
 const deployments = readDeployments();
-const RPC_URL = process.env.RPC_URL ?? "https://base-rpc.publicnode.com";
+const RPC_URL = process.env.RPC_URL ?? "https://mainnet.base.org";
 const LENS = addr(process.env.LENS, deployments.lens);
 const ROUTER = addr(process.env.ROUTER, deployments.router);
 const GRID_MANAGER = addr(process.env.GRID_MANAGER, deployments.gridManager);
@@ -38,14 +38,14 @@ const MAKER = addr(process.env.MAKER);
 const WETH = addr(process.env.WETH, deployments.weth);
 const USDC = addr(process.env.USDC, deployments.usdc);
 const MIN_MARGIN_BPS = BigInt(process.env.MIN_MARGIN_BPS ?? 10);
-const FILL_WETH = BigInt(process.env.FILL_WETH ?? "1000000000000000"); // 0.001
-const FILL_USDC = BigInt(process.env.FILL_USDC ?? "1000000"); // 1
+const FILL_WETH = BigInt(process.env.FILL_WETH ?? "500000000000000"); // 0.0005
+const FILL_USDC = BigInt(process.env.FILL_USDC ?? "500000"); // 0.5
 const TAKE_FILLS = flag("TAKE_FILLS");
 const HEDGE = flag("HEDGE");
 const ALLOW_UNREFERENCED = flag("ALLOW_UNREFERENCED");
 const ONEINCH_API_KEY = process.env.ONEINCH_API_KEY ?? "";
-const CHAIN_ID = Number(process.env.CHAIN_ID ?? deployments.chainId ?? 8453);
-const chain = CHAIN_ID === 11155111 ? sepolia : base;
+const CHAIN_ID = 8453;
+const chain = base;
 
 export type QuoteAttempt = {
   gridId: string;
@@ -128,7 +128,7 @@ export function beats(rungOut: bigint, refOut: bigint | null, allowUnreferenced 
 }
 
 export async function oneInchQuote(src: Address, dst: Address, amount: bigint): Promise<bigint | null> {
-  if (!ONEINCH_API_KEY || CHAIN_ID !== 8453) return null;
+  if (!ONEINCH_API_KEY) return null;
   const url = new URL(`https://api.1inch.dev/swap/v6.0/${CHAIN_ID}/quote`);
   url.searchParams.set("src", src);
   url.searchParams.set("dst", dst);
@@ -382,7 +382,7 @@ export async function tick(): Promise<QuoteAttempt[]> {
     });
     const receipt = await client.waitForTransactionReceipt({ hash });
     best.reason = `filled ${receipt.transactionHash}`;
-    if (HEDGE && ONEINCH_API_KEY && CHAIN_ID === 8453) {
+    if (HEDGE && ONEINCH_API_KEY) {
       try {
         const tx = await oneInchSwapTx(best.tokenOut, best.tokenIn, best.amountOutN, account.address);
         await bump(best.tokenOut, tx.to, best.amountOutN);

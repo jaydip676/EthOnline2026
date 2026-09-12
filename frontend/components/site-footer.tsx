@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/logo-mark";
+import { TokenPair } from "@/components/token-avatar";
 import { AQUA, GRID_MANAGER, LENS, ROUTER } from "@/lib/addresses";
 import { explorerAddress, shortenAddress } from "@/lib/format";
 
@@ -64,7 +65,10 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="app-shell flex flex-col gap-2 border-t border-mist/20 py-5 text-xs text-mist/80 sm:flex-row sm:items-center sm:justify-between">
-        <p>WETH / USDC on Base · 1inch Aqua + SwapVM + Chainlink</p>
+        <p className="inline-flex items-center gap-2">
+          <TokenPair size="xs" ringClassName="ring-ink" />
+          WETH / USDC on Base · 1inch Aqua + SwapVM + Chainlink
+        </p>
         <p>v1: the Ladder resolver is the counterparty so fills exist from day one.</p>
       </div>
     </footer>

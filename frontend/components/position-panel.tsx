@@ -22,11 +22,13 @@ import {
 } from "@/components/ui/table";
 import { aquaAbi, erc20Abi, gridManagerAbi } from "@/lib/abi";
 import { AQUA, GRID_MANAGER, ROUTER, USDC_TOKEN, WETH_TOKEN, isDeployed } from "@/lib/addresses";
-import { formatSlac, formatToken, formatUsd } from "@/lib/format";
+import { formatSlac, formatUsd } from "@/lib/format";
 import { runIntent } from "@/lib/intent";
 import { useFills } from "@/lib/useFills";
 import { PAUSED, useGridCount, useGridView, useReliability, useRungs } from "@/lib/useGrid";
 import { toastTxErr, toastTxOk } from "@/lib/tx";
+import { USDC, WETH } from "@/lib/tokens";
+import { TokenAmount, TokenAvatar, TokenLabel, TokenPair, RungPrice } from "@/components/token-avatar";
 
 export function PositionPanel() {
   const { address, isConnected } = useAccount();
@@ -170,7 +172,17 @@ export function PositionPanel() {
   if (!isDeployed() || !hasGrid || !view) {
     return (
       <div>
-        <PageHeader eyebrow="Monitor" title="Position" description="Ship a grid first. Then this screen is the source of truth." />
+        <PageHeader
+          eyebrow="Monitor"
+          title="Position"
+          description="Ship a grid first. Then this screen is the source of truth."
+          action={
+            <span className="inline-flex items-center gap-2 text-[13px] text-muted-foreground">
+              <TokenPair size="sm" />
+              WETH / USDC
+            </span>
+          }
+        />
         <Card>
           <CardHeader>
             <CardTitle>No grid registered</CardTitle>
@@ -186,21 +198,25 @@ export function PositionPanel() {
 
   return (
     <div className="grid gap-8">
-      <PageHeader
-        eyebrow="Monitor"
-        title="Position"
-        description="Paused is not Off. Only docking or revoking is genuinely off — and a deposit will wake paused rungs."
-        action={
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => void dockAll()} loading={busy === "pause"} disabled={Boolean(busy)}>
-              Pause
-            </Button>
-            <Button variant="destructive" onClick={() => void revoke()} loading={busy === "off"} disabled={Boolean(busy)}>
-              Off
-            </Button>
-          </div>
-        }
-      />
+        <PageHeader
+          eyebrow="Monitor"
+          title="Position"
+          description="Paused is not Off. Only docking or revoking is genuinely off — and a deposit will wake paused rungs."
+          action={
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="mr-1 inline-flex items-center gap-2 text-[13px] text-muted-foreground">
+                <TokenPair size="sm" />
+                WETH / USDC
+              </span>
+              <Button variant="outline" onClick={() => void dockAll()} loading={busy === "pause"} disabled={Boolean(busy)}>
+                Pause
+              </Button>
+              <Button variant="destructive" onClick={() => void revoke()} loading={busy === "off"} disabled={Boolean(busy)}>
+                Off
+              </Button>
+            </div>
+          }
+        />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -217,8 +233,9 @@ export function PositionPanel() {
             <DataRow
               label="Spendable now"
               value={
-                <span className="num">
-                  {formatToken(view.spendableWeth, 18, 4)} ETH · {formatToken(view.spendableUsdc, 6, 2)} USDC
+                <span className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                  <TokenAmount token={WETH} amount={view.spendableWeth} />
+                  <TokenAmount token={USDC} amount={view.spendableUsdc} />
                 </span>
               }
             />
@@ -260,17 +277,32 @@ export function PositionPanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Rungs</CardTitle>
-          <CardDescription>A rung must never show Live when it cannot fill.</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <TokenPair size="xs" />
+            Rungs
+          </CardTitle>
+          <CardDescription>WETH / USDC. A rung must never show Live when it cannot fill.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>#</TableHead>
-                <TableHead>Level</TableHead>
-                <TableHead>Bid</TableHead>
-                <TableHead>Ask</TableHead>
+                <TableHead>
+                  <TokenLabel token={WETH}>Level</TokenLabel>
+                </TableHead>
+                <TableHead>
+                  <span className="inline-flex items-center gap-1.5">
+                    <TokenAvatar token={WETH} size="xs" />
+                    Bid
+                  </span>
+                </TableHead>
+                <TableHead>
+                  <span className="inline-flex items-center gap-1.5">
+                    <TokenAvatar token={WETH} size="xs" />
+                    Ask
+                  </span>
+                </TableHead>
                 <TableHead>State</TableHead>
               </TableRow>
             </TableHeader>
@@ -278,9 +310,15 @@ export function PositionPanel() {
               {(rungs ?? []).map((rung) => (
                 <TableRow key={rung.index.toString()}>
                   <TableCell className="num">{rung.index.toString()}</TableCell>
-                  <TableCell className="num">{formatUsd(rung.level)}</TableCell>
-                  <TableCell className="num">{rung.bidLive ? formatUsd(rung.bidPrice) : "—"}</TableCell>
-                  <TableCell className="num">{rung.askLive ? formatUsd(rung.askPrice) : "—"}</TableCell>
+                  <TableCell>
+                    <RungPrice price={rung.level} />
+                  </TableCell>
+                  <TableCell>
+                    <RungPrice price={rung.bidPrice} live={rung.bidLive} />
+                  </TableCell>
+                  <TableCell>
+                    <RungPrice price={rung.askPrice} live={rung.askLive} />
+                  </TableCell>
                   <TableCell>
                     <Badge variant={rung.bidLive || rung.askLive ? "success" : "secondary"}>
                       {rung.bidLive || rung.askLive ? "Live" : (PAUSED[rung.pausedReason] ?? "Paused")}

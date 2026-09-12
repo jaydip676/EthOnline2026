@@ -1,8 +1,8 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { WalletIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TokenPair } from "@/components/token-avatar";
 
 export function ConnectGate({
   title,
@@ -14,9 +14,10 @@ export function ConnectGate({
   return (
     <Card className="border-dashed">
       <CardHeader className="items-center justify-items-center text-center">
-        <div className="mb-1 grid size-11 place-items-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
-          <WalletIcon className="size-5" />
-        </div>
+        <TokenPair size="lg" className="mb-1" />
+        <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+          WETH / USDC · Base
+        </p>
         <CardTitle className="text-base">{title}</CardTitle>
         <CardDescription className="max-w-sm text-pretty">{description}</CardDescription>
       </CardHeader>

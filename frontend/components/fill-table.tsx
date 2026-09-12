@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowUpRightIcon, RefreshCwIcon, Rows3Icon } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { TokenAmount } from "@/components/token-avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -13,9 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { USDC, WETH } from "@/lib/tokens";
-import { explorerTx, formatToken, shortenAddress } from "@/lib/format";
-import { WETH_TOKEN } from "@/lib/addresses";
+import { explorerTx, shortenAddress } from "@/lib/format";
+import { tokenByAddress } from "@/lib/tokens";
 import type { FillRow } from "@/lib/useFills";
 
 export function FillTable({
@@ -33,7 +33,7 @@ export function FillTable({
 
   return (
     <div className="grid gap-2">
-      {error ? <p className="text-[13px] text-destructive">{error}</p> : null}
+      {error ? <p className="max-w-full text-[13px] break-all text-destructive">{error}</p> : null}
       {showEmpty ? (
         <EmptyState
           icon={<Rows3Icon className="size-4" />}
@@ -51,8 +51,8 @@ export function FillTable({
             <TableRow className="hover:bg-transparent">
               <TableHead>Block</TableHead>
               <TableHead>Taker</TableHead>
-              <TableHead className="text-right">In</TableHead>
-              <TableHead className="text-right">Out</TableHead>
+              <TableHead>In</TableHead>
+              <TableHead>Out</TableHead>
               <TableHead className="text-right">Tx</TableHead>
             </TableRow>
           </TableHeader>
@@ -67,15 +67,25 @@ export function FillTable({
                 ))
               : null}
             {fills.map((row) => {
-              const inDec = row.tokenIn.toLowerCase() === WETH_TOKEN.toLowerCase() ? WETH.decimals : USDC.decimals;
-              const outDec = row.tokenOut.toLowerCase() === WETH_TOKEN.toLowerCase() ? WETH.decimals : USDC.decimals;
+              const tokenIn = tokenByAddress(row.tokenIn);
+              const tokenOut = tokenByAddress(row.tokenOut);
               return (
                 <TableRow key={`${row.tx}-${row.block}`}>
                   <TableCell className="num text-xs text-muted-foreground">{row.block.toString()}</TableCell>
                   <TableCell className="num text-xs">{shortenAddress(row.taker)}</TableCell>
-                  <TableCell className="num text-right text-[13px]">{formatToken(row.amountIn, inDec)}</TableCell>
-                  <TableCell className="num text-right text-[13px] text-primary">
-                    {formatToken(row.amountOut, outDec)}
+                  <TableCell>
+                    {tokenIn ? (
+                      <TokenAmount token={tokenIn} amount={row.amountIn} />
+                    ) : (
+                      <span className="num text-[13px]">{row.amountIn.toString()}</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-primary">
+                    {tokenOut ? (
+                      <TokenAmount token={tokenOut} amount={row.amountOut} />
+                    ) : (
+                      <span className="num text-[13px]">{row.amountOut.toString()}</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <a

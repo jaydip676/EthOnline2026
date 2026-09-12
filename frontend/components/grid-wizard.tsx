@@ -27,7 +27,7 @@ import {
   isDeployed,
 } from "@/lib/addresses";
 import { score, slacFromRungs } from "@/lib/collision";
-import { formatBps, formatSlac, formatToken, formatUsd } from "@/lib/format";
+import { formatBps, formatSlac, formatUsd } from "@/lib/format";
 import {
   DEFAULT_PROTOCOL_FEE,
   DEFAULT_STALENESS,
@@ -41,6 +41,7 @@ import { runIntent, type IntentCall } from "@/lib/intent";
 import { explainRisk } from "@/lib/riskExplainer";
 import { encodeOrder, nextSalt, type SwapVMOrder } from "@/lib/strategy";
 import { USDC, WETH } from "@/lib/tokens";
+import { TokenAmount, TokenBalanceRow, TokenLabel, TokenPair, RungPrice } from "@/components/token-avatar";
 import { toastTxErr, toastTxOk } from "@/lib/tx";
 import { useReliability } from "@/lib/useGrid";
 
@@ -270,6 +271,12 @@ export function GridWizard() {
           eyebrow="Setup"
           title="Start a grid"
           description="Commit is a live share of the wallet, not a frozen number. Spend, and every rung halves itself."
+          action={
+            <span className="inline-flex items-center gap-2 text-[13px] text-muted-foreground">
+              <TokenPair size="sm" />
+              WETH / USDC
+            </span>
+          }
         />
 
         <div className="grid gap-6">
@@ -279,14 +286,15 @@ export function GridWizard() {
               <CardDescription>Rungs quote only while the real balance can pay.</CardDescription>
             </CardHeader>
             <CardContent className="divide-rule">
-              <DataRow label="WETH" value={<span className="num">{formatToken(ethBal, 18, 4)}</span>} />
-              <DataRow label="USDC" value={<span className="num">{formatToken(usdBal, 6, 2)}</span>} />
+              <TokenBalanceRow token={WETH} amount={ethBal} />
+              <TokenBalanceRow token={USDC} amount={usdBal} />
               <DataRow
                 label="Spendable now"
                 hint="Committed keeps this as headroom above the grid. Flexible lets you spend anything — rungs just get smaller."
                 value={
-                  <span className="num">
-                    {formatToken(spendableEth, 18, 4)} ETH · {formatToken(spendableUsdc, 6, 2)} USDC
+                  <span className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                    <TokenAmount token={WETH} amount={spendableEth} />
+                    <TokenAmount token={USDC} amount={spendableUsdc} />
                   </span>
                 }
               />
@@ -392,10 +400,18 @@ export function GridWizard() {
               />
               <ol className="grid gap-1.5">
                 {preview.levels.map((level, i) => (
-                  <li key={i} className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-[13px]">
+                  <li key={i} className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2 text-[13px]">
                     <span className="text-muted-foreground">Rung {i + 1}</span>
-                    <span className="num">
-                      bid {formatUsd(preview.bids[i]!)} · {formatUsd(level)} · ask {formatUsd(preview.asks[i]!)}
+                    <span className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                      <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                        bid
+                        <RungPrice price={preview.bids[i]!} />
+                      </span>
+                      <RungPrice price={level} />
+                      <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                        ask
+                        <RungPrice price={preview.asks[i]!} />
+                      </span>
                     </span>
                   </li>
                 ))}
@@ -404,10 +420,26 @@ export function GridWizard() {
                 <AlertTitle>A grid buys the dip by design</AlertTitle>
                 <AlertDescription>
                   Worst-case inventory at the bottom of the range is about{" "}
-                  <span className="num font-medium">{formatToken(worst.worstEth, 18, 3)} ETH</span> if every bid
-                  fills. The envelope bounds this; it does not remove it.
+                  <TokenAmount token={WETH} amount={worst.worstEth} digits={3} className="font-medium" /> if
+                  every bid fills. The envelope bounds this; it does not remove it.
                 </AlertDescription>
               </Alert>
+              {ethBal < 5_000_000_000_000_000n || usdBal < 15_000_000n ? (
+                <Alert variant="warning">
+                  <AlertTitle>This wallet is short for a live fill</AlertTitle>
+                  <AlertDescription>
+                    Need at least{" "}
+                    <TokenLabel token={WETH}>
+                      <span className="num">0.005 WETH</span>
+                    </TokenLabel>{" "}
+                    and{" "}
+                    <TokenLabel token={USDC}>
+                      <span className="num">15 USDC</span>
+                    </TokenLabel>{" "}
+                    in the connected Base wallet. Native ETH is only gas — wrap WETH and hold native USDC.
+                  </AlertDescription>
+                </Alert>
+              ) : null}
               <Alert variant="info">
                 <AlertTitle>This text does not hold a key and does not price a swap</AlertTitle>
                 <AlertDescription>
@@ -418,7 +450,13 @@ export function GridWizard() {
                   </div>
                 </AlertDescription>
               </Alert>
-              <Button size="lg" className="w-full" onClick={() => void onStart()} loading={busy} disabled={busy}>
+              <Button
+                size="lg"
+                className="w-full"
+                onClick={() => void onStart()}
+                loading={busy}
+                disabled={busy || ethBal < 5_000_000_000_000_000n || usdBal < 15_000_000n}
+              >
                 Start
               </Button>
               {busy || doneIds.length > 0 ? (

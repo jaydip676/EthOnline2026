@@ -24,7 +24,6 @@ runs = 64
 
 [rpc_endpoints]
 base = "${BASE_RPC_URL}"
-sepolia = "${ETH_RPC_URL}"
 
 [fmt]
 line_length = 120

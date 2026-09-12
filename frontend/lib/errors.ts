@@ -22,5 +22,10 @@ export function shortError(error: unknown): string {
     return "This SwapVM does not support that program. Check the router address.";
   }
   const first = raw.split("\n").find((line) => line.trim().length > 0) ?? raw;
-  return first.replace(/^(ContractFunctionExecutionError|TransactionExecutionError):\s*/i, "").slice(0, 280);
+  return first
+    .replace(
+      /^(ContractFunctionExecutionError|TransactionExecutionError):\s*/i,
+      "",
+    )
+    .slice(0, 280);
 }

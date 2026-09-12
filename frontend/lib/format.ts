@@ -1,5 +1,4 @@
 import { formatUnits, parseUnits } from "viem";
-import { CHAIN_ID } from "./addresses";
 
 export function formatToken(amount: bigint | undefined, decimals = 18, maxFrac = 5): string {
   if (amount === undefined) return "—";
@@ -42,7 +41,7 @@ export function formatBps(bps: number): string {
   return `${(bps / 100).toFixed(bps % 100 === 0 ? 0 : 2)}%`;
 }
 
-export const EXPLORER = CHAIN_ID === 11155111 ? "https://sepolia.etherscan.io" : "https://basescan.org";
+export const EXPLORER = "https://basescan.org";
 
 export function explorerTx(hash: string): string {
   return `${EXPLORER}/tx/${hash}`;

@@ -13,7 +13,7 @@ export function DataRow({
   className?: string;
 }) {
   return (
-    <div className={cn("flex items-baseline justify-between gap-4 py-2 text-[13px]", className)}>
+    <div className={cn("flex items-center justify-between gap-4 py-2 text-[13px]", className)}>
       <span className="shrink-0 text-muted-foreground" title={hint}>
         {label}
       </span>

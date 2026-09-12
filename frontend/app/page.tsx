@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRightIcon, Rows3Icon, ShieldOffIcon, WalletIcon } from "lucide-react";
 import { HeroWell } from "@/components/hero-well";
 import { LiveDot } from "@/components/live-dot";
-import { TokenAvatar } from "@/components/token-avatar";
+import { TokenAvatar, TokenPair } from "@/components/token-avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { USDC, WETH } from "@/lib/tokens";
@@ -63,16 +63,35 @@ export default function HomePage() {
             </div>
           </div>
           <div className="grid gap-3">
-            <div className="flex items-center gap-2 text-[13px] text-mist/90">
-              <TokenAvatar symbol={WETH.symbol} accent={WETH.accent} size="sm" />
-              <TokenAvatar symbol={USDC.symbol} accent={USDC.accent} size="sm" />
-              Base · WETH / USDC
+            <div className="flex flex-wrap items-center gap-3 text-[13px] text-mist/90">
+              <TokenPair size="md" ringClassName="ring-ink" />
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-1.5">
+                  <TokenAvatar token={WETH} size="xs" />
+                  WETH
+                </span>
+                <span className="text-mist/50">/</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <TokenAvatar token={USDC} size="xs" />
+                  USDC
+                </span>
+                <span className="text-mist/70">· Base</span>
+              </div>
             </div>
             <dl className="grid grid-cols-2 gap-3">
               {facts.map((fact) => (
                 <div key={fact.label} className="rounded-xl border border-mist/20 bg-mist/10 px-4 py-3">
                   <dt className="text-[11px] tracking-[0.14em] text-mist/80 uppercase">{fact.label}</dt>
-                  <dd className="mt-1 text-sm font-medium">{fact.value}</dd>
+                  <dd className="mt-1 text-sm font-medium">
+                    {fact.label === "Pair" ? (
+                      <span className="inline-flex items-center gap-2">
+                        <TokenPair size="xs" ringClassName="ring-ink" />
+                        WETH / USDC
+                      </span>
+                    ) : (
+                      fact.value
+                    )}
+                  </dd>
                 </div>
               ))}
             </dl>
