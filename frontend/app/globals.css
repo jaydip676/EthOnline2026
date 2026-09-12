@@ -1,0 +1,358 @@
+@import "tailwindcss" source("..");
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.875rem;
+
+  /* Palette — 60 / 30 / 10
+     Mist   #8ECAE6  light structure (washes, borders, on-ink mute)
+     Teal   #219EBC  brand (30%): buttons, links, logo
+     Ink    #023047  type, hero, footer (60% with mist)
+     Amber  #FFB703  live, steps, warning
+     Orange #FB8500  swap / confirm only (10%)
+  */
+  --mist: #8ecae6;
+  --teal: #219ebc;
+  --ink: #023047;
+  --gold: #ffb703;
+  --cta: #fb8500;
+  --cream: #f4fbfd;
+
+  --background: color-mix(in srgb, #8ecae6 12%, #ffffff);
+  --foreground: #023047;
+  --card: #ffffff;
+  --card-foreground: #023047;
+  --popover: #ffffff;
+  --popover-foreground: #023047;
+
+  --muted: color-mix(in srgb, #8ecae6 28%, #ffffff);
+  --muted-foreground: color-mix(in srgb, #023047 62%, #8ecae6);
+  --secondary: color-mix(in srgb, #8ecae6 22%, #ffffff);
+  --secondary-foreground: #023047;
+  --accent: color-mix(in srgb, #8ecae6 32%, #ffffff);
+  --accent-foreground: #023047;
+
+  --primary: #219ebc;
+  --primary-foreground: #f4fbfd;
+
+  --success: #219ebc;
+  --success-foreground: #f4fbfd;
+  --warning: #ffb703;
+  --warning-foreground: #023047;
+  --gold-foreground: #023047;
+  --destructive: #fb8500;
+  --destructive-foreground: #023047;
+  --cta-foreground: #023047;
+
+  --border: color-mix(in srgb, #023047 13%, transparent);
+  --input: color-mix(in srgb, #023047 18%, transparent);
+  --ring: #219ebc;
+
+  --chart-1: #023047;
+  --chart-2: #219ebc;
+  --chart-3: #ffb703;
+  --chart-4: #8ecae6;
+  --chart-5: #fb8500;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #023047;
+  --sidebar-primary: #219ebc;
+  --sidebar-primary-foreground: #f4fbfd;
+  --sidebar-accent: color-mix(in srgb, #8ecae6 28%, #ffffff);
+  --sidebar-accent-foreground: #023047;
+  --sidebar-border: color-mix(in srgb, #023047 13%, transparent);
+  --sidebar-ring: #219ebc;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: ui-serif, Georgia, serif;
+  --font-mono: var(--font-geist-mono), "IBM Plex Mono", ui-monospace, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-gold: var(--gold);
+  --color-gold-foreground: var(--gold-foreground);
+  --color-cta: var(--cta);
+  --color-cta-foreground: var(--cta-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-ink: var(--ink);
+  --color-mist: var(--mist);
+  --radius-sm: calc(var(--radius) - 5px);
+  --radius-md: calc(var(--radius) - 3px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-back: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply scroll-smooth;
+    scroll-padding-top: 6rem;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    background-image: radial-gradient(900px 520px at 50% -18%, color-mix(in srgb, var(--mist) 45%, transparent), transparent 64%);
+    background-attachment: fixed;
+  }
+  body::before {
+    content: "";
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--teal) 28%, transparent);
+    color: var(--ink);
+  }
+  :focus-visible {
+    outline: none;
+  }
+  h1,
+  h2 {
+    letter-spacing: -0.015em;
+  }
+}
+
+@layer utilities {
+  .app-shell {
+    @apply relative z-10 mx-auto w-full max-w-[72rem] px-5 sm:px-8;
+  }
+  .num {
+    @apply font-mono tabular-nums tracking-tight;
+  }
+  .eyebrow {
+    @apply text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase;
+  }
+  .panel {
+    background: var(--card);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 55%, transparent),
+      0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent),
+      0 18px 40px -28px color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+  .surface {
+    background: var(--card);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 55%, transparent),
+      0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent),
+      0 18px 40px -28px color-mix(in srgb, var(--ink) 28%, transparent);
+  }
+  .surface-glow {
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 50%, transparent),
+      0 1px 2px color-mix(in srgb, var(--ink) 8%, transparent),
+      0 24px 50px -32px color-mix(in srgb, var(--ink) 32%, transparent);
+  }
+  .inset-well {
+    background: color-mix(in srgb, var(--mist) 22%, #ffffff);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 6%, transparent);
+  }
+  .glass {
+    background: color-mix(in srgb, var(--popover) 92%, transparent);
+    backdrop-filter: blur(16px);
+  }
+  .kbd {
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded-[5px] border border-border bg-muted px-1.5 font-mono text-[10px] leading-none font-medium text-muted-foreground;
+  }
+  .divide-rule > * + * {
+    border-top: 1px solid var(--border);
+  }
+  .animate-enter {
+    animation: enter-page 380ms var(--ease-out-quint) both;
+  }
+  .animate-enter-delay {
+    animation: enter-page 420ms var(--ease-out-quint) 60ms both;
+  }
+  .stagger > * {
+    animation: enter-page 380ms var(--ease-out-quint) both;
+  }
+  .stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger > *:nth-child(2) { animation-delay: 40ms; }
+  .stagger > *:nth-child(3) { animation-delay: 80ms; }
+  .stagger > *:nth-child(4) { animation-delay: 120ms; }
+  .stagger > *:nth-child(5) { animation-delay: 160ms; }
+  .stagger > *:nth-child(6) { animation-delay: 200ms; }
+  .text-balance-pretty {
+    text-wrap: pretty;
+  }
+  .flash-quote {
+    animation: quote-flash 420ms var(--ease-out-quint);
+  }
+  .live-pulse {
+    animation: live-pulse 2s ease-in-out infinite;
+  }
+  .well-pulse {
+    animation: well-pulse 7s ease-in-out infinite;
+  }
+  .skip-link {
+    @apply absolute left-5 z-[60] rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground;
+    top: -4rem;
+  }
+  .skip-link:focus {
+    top: 1rem;
+  }
+}
+
+@keyframes enter-page {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes well-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 0.85;
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0.78);
+    opacity: 0.35;
+  }
+  100% {
+    transform: scale(1.14);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes quote-flash {
+  0% {
+    color: var(--primary);
+  }
+  100% {
+    color: inherit;
+  }
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+}
+
+[data-slot="skeleton"] {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--mist) 35%, #ffffff);
+}
+[data-slot="skeleton"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, white 45%, transparent), transparent);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+[data-sonner-toaster] {
+  font-family: var(--font-sans) !important;
+}
+[data-sonner-toast] {
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 20px 50px -24px color-mix(in srgb, var(--ink) 35%, transparent) !important;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink) 28%, transparent);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--ink) 42%, transparent);
+  background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-enter,
+  .animate-enter-delay,
+  .stagger > *,
+  .flash-quote,
+  .well-ring,
+  .well-pulse,
+  .live-pulse,
+  [data-slot="skeleton"]::after {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
