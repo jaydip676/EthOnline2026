@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { NetworkBanner } from "@/components/network-banner";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { ICONS, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -17,19 +18,34 @@ const mono = IBM_Plex_Mono({
   variable: "--font-geist-mono",
 });
 
-const description =
-  "CEX-style grid on official 1inch Aqua. Rungs re-arm themselves. Coverage stops underfunded quotes on-chain. Tokens stay in the wallet.";
-
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Ladder",
-    template: "%s · Ladder",
+    default: SITE_NAME,
+    template: `%s · ${SITE_NAME}`,
   },
-  description,
-  applicationName: "Ladder",
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   keywords: ["1inch", "Aqua", "SwapVM", "SLAC", "coverage", "grid", "Base"],
   icons: {
-    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: ICONS.favicon, type: "image/svg+xml" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
   },
 };
 

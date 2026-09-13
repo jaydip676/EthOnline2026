@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { LiveDot } from "@/components/live-dot";
-import { LogoMark } from "@/components/logo-mark";
+import { LogoLockup } from "@/components/logo-mark";
 import { TokenPair } from "@/components/token-avatar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -28,8 +28,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-xl">
       <div className="app-shell flex h-16 items-center gap-6">
         <Link href="/" className="group flex items-center gap-2.5 text-foreground transition-opacity hover:opacity-80">
-          <LogoMark className="size-7" />
-          <span className="text-[15px] font-semibold tracking-[-0.01em]">Ladder</span>
+          <LogoLockup className="h-8" />
           <span className="hidden rounded-full bg-gold px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-ink uppercase sm:inline">
             Aqua
           </span>

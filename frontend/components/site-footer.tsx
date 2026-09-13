@@ -23,7 +23,9 @@ export function SiteFooter() {
       <div className="app-shell grid gap-10 py-12 md:grid-cols-[minmax(0,1.4fr)_auto_auto] md:gap-16">
         <div className="max-w-sm">
           <p className="flex items-center gap-2 text-sm font-semibold">
-            <LogoMark inverse className="size-5" />
+            <span className="grid size-7 place-items-center overflow-hidden rounded-[8px] bg-[#F4FBFD]">
+              <LogoMark className="size-7" />
+            </span>
             Ladder
           </p>
           <p className="mt-3 text-[13px] leading-relaxed text-mist/90">
