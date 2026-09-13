@@ -18,7 +18,7 @@ const mono = IBM_Plex_Mono({
 });
 
 const description =
-  "Bounding SLAC on 1inch Aqua. Coverage stops underfunded rungs from quoting. Tokens stay in the wallet.";
+  "CEX-style grid on official 1inch Aqua. Rungs re-arm themselves. Coverage stops underfunded quotes on-chain. Tokens stay in the wallet.";
 
 export const metadata: Metadata = {
   title: {

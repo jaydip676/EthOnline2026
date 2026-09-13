@@ -12,6 +12,8 @@ export type Deployments = {
   chainlinkAdapter: Address;
   treasury: Address;
   startBlock: number;
+  demoBid: `0x${string}`;
+  demoAsk: `0x${string}`;
 };
 
 export const ADDRESSES = deployments as Deployments;
@@ -28,6 +30,8 @@ export const ORACLE =
 export const TREASURY = (process.env.NEXT_PUBLIC_TREASURY as Address | undefined) ?? ADDRESSES.treasury;
 export const START_BLOCK = BigInt(process.env.NEXT_PUBLIC_START_BLOCK ?? String(ADDRESSES.startBlock ?? 0));
 export const CHAIN_ID = 8453;
+export const DEMO_BID = ADDRESSES.demoBid;
+export const DEMO_ASK = ADDRESSES.demoAsk;
 
 export function isDeployed(): boolean {
   return ROUTER !== zeroAddress && GRID_MANAGER !== zeroAddress && LENS !== zeroAddress;

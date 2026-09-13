@@ -27,8 +27,8 @@ export function SiteFooter() {
             Ladder
           </p>
           <p className="mt-3 text-[13px] leading-relaxed text-mist/90">
-            Bounding SLAC on 1inch Aqua. Coverage stops underfunded rungs from quoting. Tokens
-            never leave the wallet.
+            CEX-style grid on official Aqua. Rungs re-arm themselves. Coverage stops underfunded
+            quotes on-chain. Tokens never leave the wallet.
           </p>
         </div>
         <div>

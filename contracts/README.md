@@ -1,6 +1,8 @@
 # Contracts
 
-Foundry project pointed at official Aqua (`0x1111113CCf1426A8E30e2bfF5E005d929bF6a90a`). SwapVM will be redeployed.
+Foundry project pointed at official Aqua (`0x1111113CCf1426A8E30e2bfF5E005d929bF6a90a`). SwapVM is redeployed as `LadderRouter`.
+
+Lead tests for judges: `test_spec10_underfundedAdverseMoveNoStaleFill` and `test_coverageGuardStopsQuotesWalletGuardAloneWouldHonor` in `test/LadderGrid.t.sol`.
 
 `lib/` is gitignored. Pull the remappings once:
 

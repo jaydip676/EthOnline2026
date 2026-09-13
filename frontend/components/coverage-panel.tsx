@@ -89,7 +89,7 @@ export function CoveragePanel() {
       <PageHeader
         eyebrow="Judge screen"
         title="Coverage"
-        description="Quoted versus real available, per rung. SLAC is defined in Aqua §4.1 and unbounded there. Ladder measures it and stops quotes below the coverage floor."
+        description="Quoted versus real available, per rung. Below the coverage floor the rung stops quoting — on-chain, at quote time."
         action={
           <div className="flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-2 text-[13px] text-muted-foreground">
@@ -174,20 +174,21 @@ export function CoveragePanel() {
             <CardTitle>What this is</CardTitle>
           </CardHeader>
           <CardContent className="text-[13px] leading-relaxed text-pretty text-muted-foreground">
-            Aqua §3 tells makers to dock chronically underfunded strategies by hand. CoverageGuard is
-            that policy on-chain. Predicted fill and max safe SLAC are a transparent heuristic
-            calibrated so ~3.2× is ~1% under the test-17 pattern — a method demonstration, not a
-            bound you can take to production. It never prices a swap and never holds a key.
+            Aqua §3 tells makers to dock chronically underfunded strategies by hand. CoverageGuard
+            is that floor in the SwapVM program, evaluated at quote time — not a keeper. Predicted
+            fill and max safe SLAC are a transparent heuristic calibrated so ~3.2× is ~1% under the
+            test-17 pattern — a method demonstration, not a bound you can take to production. It
+            never prices a swap and never holds a key.
           </CardContent>
         </Card>
       </div>
 
       <Alert variant="info">
-        <AlertTitle>SLAC is defined, not bounded</AlertTitle>
+        <AlertTitle>Quoted vs real, on-chain</AlertTitle>
         <AlertDescription>
-          The whitepaper demonstrates 9× and assumes utilization stays low so shared capital can
-          service occasional trades. Test 17 records collision rate against that assumption. This
-          screen is §6.3, productized.
+          Whitepaper §6.3: monitor virtual versus real. Coverage below the floor darkens the rung
+          before a taker spends gas. Test 17 records collision rate vs SLAC 1×–9× as a method
+          demonstration, not a production bound.
         </AlertDescription>
       </Alert>
 

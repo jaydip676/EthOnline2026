@@ -1,16 +1,18 @@
 import Link from "next/link";
-import { ArrowRightIcon, Rows3Icon, ShieldOffIcon, WalletIcon } from "lucide-react";
+import { ArrowRightIcon, ArrowUpRightIcon, Rows3Icon, ShieldOffIcon, WalletIcon } from "lucide-react";
 import { HeroWell } from "@/components/hero-well";
 import { LiveDot } from "@/components/live-dot";
 import { TokenAvatar, TokenPair } from "@/components/token-avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DEMO_ASK, DEMO_BID } from "@/lib/addresses";
+import { explorerTx, shortenAddress } from "@/lib/format";
 import { USDC, WETH } from "@/lib/tokens";
 
 const facts = [
   { label: "Custody", value: "Your wallet" },
-  { label: "SLAC", value: "Measured" },
-  { label: "Coverage", value: "On-chain floor" },
+  { label: "Fills", value: "Base" },
+  { label: "Coverage", value: "Quote-time floor" },
   { label: "Pair", value: "WETH / USDC" },
 ];
 
@@ -27,8 +29,8 @@ const features = [
   },
   {
     icon: ShieldOffIcon,
-    title: "Coverage, not a sermon",
-    body: "Aqua defines SLAC and shows 9×. It never says what is safe. Below your coverage floor the rung stops quoting.",
+    title: "Quote-time floor, on-chain",
+    body: "Below your coverage floor the rung stops quoting. That is Aqua §3 as SwapVM bytecode, not a keeper.",
   },
 ];
 
@@ -41,14 +43,15 @@ export default function HomePage() {
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-mist/35 bg-mist/10 px-3 py-1 text-[11px] font-medium text-mist">
               <LiveDot on tone="gold" />
-              1inch Aqua · SwapVM · Chainlink
+              1inch Aqua · SwapVM · Base
             </span>
             <h1 className="mt-6 text-[2.5rem] leading-[1.06] font-semibold tracking-[-0.03em] text-pretty sm:text-[3.25rem]">
-              The whitepaper defines SLAC. It never says what is safe.
+              CEX-style grid on official Aqua. Rungs re-arm themselves.
             </h1>
             <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-pretty text-mist/90">
-              Ladder bounds it on 1inch Aqua: a live share of the wallet, a coverage floor that
-              auto-docks underfunded rungs, and a grid that measures where SLAC actually breaks.
+              WETH / USDC. Tokens stay in the wallet. A bid fill lights the ask with no maker
+              transaction. WalletGuard and CoverageGuard sit in the program, so underfunded rungs
+              stop quoting on-chain.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button size="lg" className="bg-[#F4FBFD] text-ink hover:bg-[#F4FBFD]/92" asChild>
@@ -61,6 +64,27 @@ export default function HomePage() {
                 <Link href="/coverage">Watch coverage</Link>
               </Button>
             </div>
+            <p className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-mist/80">
+              <span>Live fills</span>
+              <a
+                className="inline-flex items-center gap-1 text-mist transition-colors hover:text-[#F4FBFD]"
+                href={explorerTx(DEMO_BID)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Bid {shortenAddress(DEMO_BID, 3)}
+                <ArrowUpRightIcon className="size-3" />
+              </a>
+              <a
+                className="inline-flex items-center gap-1 text-mist transition-colors hover:text-[#F4FBFD]"
+                href={explorerTx(DEMO_ASK)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Ask re-arm {shortenAddress(DEMO_ASK, 3)}
+                <ArrowUpRightIcon className="size-3" />
+              </a>
+            </p>
           </div>
           <div className="grid gap-3">
             <div className="flex flex-wrap items-center gap-3 text-[13px] text-mist/90">

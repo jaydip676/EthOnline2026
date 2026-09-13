@@ -3,6 +3,8 @@ pragma solidity 0.8.30;
 
 import {IAqua} from "@1inch/aqua/src/interfaces/IAqua.sol";
 import {ISwapVM} from "swap-vm/src/interfaces/ISwapVM.sol";
+import {Salt} from "swap-vm/src/instructions/Controls.sol";
+import {MakerTraitsLib} from "swap-vm/src/libs/MakerTraits.sol";
 import {Vm} from "forge-std/Vm.sol";
 
 import {AQUA} from "../src/libraries/Constants.sol";
@@ -12,7 +14,10 @@ import {GridManager} from "../src/GridManager.sol";
 import {LadderLens} from "../src/LadderLens.sol";
 import {MockOracle} from "../src/oracle/MockOracle.sol";
 import {OracleEnvelope} from "../src/instructions/OracleEnvelope.sol";
+import {WalletGuard} from "../src/instructions/WalletGuard.sol";
 import {CoverageGuard} from "../src/instructions/CoverageGuard.sol";
+import {ProtocolFee} from "../src/instructions/ProtocolFee.sol";
+import {RungQuote} from "../src/instructions/RungQuote.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
 import {ForkRpc} from "./utils/ForkRpc.sol";
 
@@ -369,6 +374,46 @@ contract LadderGridTest is ForkRpc {
         assertLe(qOut * 1e18 * 1e18, qIn * bid * 1e6 + 1e6, "fill is the rung, not the dumped print");
     }
 
+    /// @dev Same drain as spec 9: WalletGuard still quotes the residual share; CoverageGuard refuses.
+    function test_coverageGuardStopsQuotesWalletGuardAloneWouldHonor() public {
+        _shipAll();
+        ISwapVM.Order memory bare = _orderWithoutCoverage(3);
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(weth);
+        tokens[1] = address(usdc);
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = params.ethCap;
+        amounts[1] = params.usdcCap;
+        vm.prank(maker);
+        aqua.ship(address(router), abi.encode(bare), tokens, amounts);
+
+        uint256 keep = 3e18;
+        uint256 send = weth.balanceOf(maker) - keep;
+        vm.prank(maker);
+        weth.transfer(taker, send);
+
+        uint256 share = (keep * uint256(params.maxShareBps)) / 10_000;
+        uint256 coverage = (share * 10_000) / params.ethCap;
+        assertLt(coverage, params.minCoverageBps);
+
+        uint256 guardedLive;
+        for (uint256 i; i < params.rungCount; ++i) {
+            try this.externalQuote(i, false, 1e6) {
+                ++guardedLive;
+            } catch {}
+        }
+
+        uint256 unguardedOut;
+        try this.externalQuoteOrder(bare, false, 1e6) returns (uint256, uint256 outAmt) {
+            unguardedOut = outAmt;
+        } catch {}
+
+        emit log_named_uint("guardedLiveAsks", guardedLive);
+        emit log_named_uint("unguardedAskOut", unguardedOut);
+        assertEq(guardedLive, 0, "CoverageGuard: no live asks after the drain");
+        assertGt(unguardedOut, 0, "WalletGuard alone still quotes the residual share");
+    }
+
     /// @dev Spec 11: two takers, one wallet, one fill, one clean revert.
     function test_spec11_twoTakersOneBalance() public {
         params.maxShareBps = 10_000;
@@ -480,6 +525,17 @@ contract LadderGridTest is ForkRpc {
         return _quote(rung, takerSellsWeth, amount);
     }
 
+    function externalQuoteOrder(ISwapVM.Order calldata order, bool takerSellsWeth, uint256 amount)
+        external
+        view
+        returns (uint256, uint256)
+    {
+        bool isAToB = takerSellsWeth ? wethIsA : !wethIsA;
+        bytes memory td = manager.buildTakerData(taker, true, isAToB, true);
+        (uint256 inAmt, uint256 outAmt,) = router.asView().quote(order, amount, td);
+        return (inAmt, outAmt);
+    }
+
     function _shipAll() internal {
         (orders, hashes) = _orders();
         address[] memory tokens = new address[](2);
@@ -547,5 +603,66 @@ contract LadderGridTest is ForkRpc {
 
     function _min(uint256 a, uint256 b) internal pure returns (uint256) {
         return a < b ? a : b;
+    }
+
+    function _orderWithoutCoverage(uint256 rungIndex) internal view returns (ISwapVM.Order memory) {
+        GridLib.GridParams memory p = params;
+        p.saltNonce += 100;
+        bytes memory program = OracleEnvelope.build(
+            GridLib.envelopeFloor(p),
+            GridLib.envelopeCeiling(p),
+            p.maxStaleness,
+            p.oracle
+        );
+        program = bytes.concat(program, WalletGuard.build(p.weth, p.maxShareBps, p.aqua));
+        program = bytes.concat(program, WalletGuard.build(p.usdc, p.maxShareBps, p.aqua));
+        program = bytes.concat(program, ProtocolFee.build(p.protocolFeeBps, p.treasury));
+        program = bytes.concat(
+            program,
+            RungQuote.build(
+                GridLib.level(p, rungIndex),
+                GridLib.halfSpread(p),
+                GridLib.bidCap(p),
+                GridLib.askCap(p),
+                p.wethDecimals,
+                p.usdcDecimals,
+                GridLib.wethIsTokenA(p)
+            )
+        );
+        program = bytes.concat(program, Salt.build(GridLib.salt(p, rungIndex)));
+        return _aquaOrder(p.maker, GridLib.tokenA(p), GridLib.tokenB(p), program);
+    }
+
+    function _aquaOrder(
+        address maker_,
+        address tokenA_,
+        address tokenB_,
+        bytes memory program
+    ) internal pure returns (ISwapVM.Order memory order) {
+        if (tokenA_ > tokenB_) (tokenA_, tokenB_) = (tokenB_, tokenA_);
+        order = MakerTraitsLib.build(
+            MakerTraitsLib.Args({
+                maker: maker_,
+                receiver: address(0),
+                tokenA: tokenA_,
+                tokenB: tokenB_,
+                shouldUnwrapWeth: false,
+                useAquaInsteadOfSignature: true,
+                allowZeroAmountIn: false,
+                hasPreTransferInHook: false,
+                hasPostTransferInHook: false,
+                hasPreTransferOutHook: false,
+                hasPostTransferOutHook: false,
+                preTransferInTarget: address(0),
+                preTransferInData: "",
+                postTransferInTarget: address(0),
+                postTransferInData: "",
+                preTransferOutTarget: address(0),
+                preTransferOutData: "",
+                postTransferOutTarget: address(0),
+                postTransferOutData: "",
+                program: program
+            })
+        );
     }
 }

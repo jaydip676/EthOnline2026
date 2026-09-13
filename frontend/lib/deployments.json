@@ -8,5 +8,7 @@
   "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   "chainlinkAdapter": "0xE6D3b6d3C0c9F3d336e6664068e67672e21741e1",
   "treasury": "0x637AcD6C56f9D4685B1b9f949a4903049c22C7aA",
-  "startBlock": 51206648
+  "startBlock": 51206648,
+  "demoBid": "0x3231e3e482b06b3280c0ad48eac65ed32b91fe9ba4f931e6cb408d9f7ce8f4b6",
+  "demoAsk": "0x1283d264b30f8f287540a044355919213b71f4a35d735159a8d98d5ac6a3c4f1"
 }
