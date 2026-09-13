@@ -20,7 +20,7 @@ export function LogoLockup({ className }: { className?: string }) {
       alt="Ladder"
       width={180}
       height={72}
-      className={cn("h-8 w-auto", className)}
+      className={cn("h-10 w-auto", className)}
     />
   );
 }

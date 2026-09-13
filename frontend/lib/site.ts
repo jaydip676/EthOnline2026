@@ -10,4 +10,6 @@ export const ICONS = {
   mark: "/icons/ladder-icon.svg",
   mark512: "/icons/ladder-icon-512.svg",
   lockup: "/icons/ladder-lockup-light.svg",
+  cover: "/icons/ladder-cover-1200x630.png",
+  coverSvg: "/icons/ladder_cover_image_1200x630_v3.svg",
 } as const;

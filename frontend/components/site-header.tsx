@@ -28,7 +28,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-xl">
       <div className="app-shell flex h-16 items-center gap-6">
         <Link href="/" className="group flex items-center gap-2.5 text-foreground transition-opacity hover:opacity-80">
-          <LogoLockup className="h-8" />
+          <LogoLockup className="h-10" />
           <span className="hidden rounded-full bg-gold px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-ink uppercase sm:inline">
             Aqua
           </span>
